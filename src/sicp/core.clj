@@ -1,7 +1,5 @@
 (ns sicp.core
-  (:gen-class))
+  (:require [sicp.count-change :refer [count-change]]))
 
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (println "Hello, World!"))
+(defn -main []
+  (println (count-change 30)))
