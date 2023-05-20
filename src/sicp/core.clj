@@ -1,5 +1,5 @@
 (ns sicp.core
-  (:require [sicp.count-change :refer [count-change]]))
+  (:require [sicp.three-fn :refer [three-fn]]))
 
 (defn -main []
-  (println (count-change 30)))
+  (println (three-fn 11)))

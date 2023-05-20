@@ -1,7 +1,7 @@
 (ns sicp.fib)
 
 (defn fib [n]
-  (cond 
+  (cond
     (= n 0) 0
     (= n 1) 1
     :else (+ (fib (- n 1))
