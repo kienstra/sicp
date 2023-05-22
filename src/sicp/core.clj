@@ -1,7 +1,7 @@
 (ns sicp.core
   (:require [sicp.three-fn :refer [three-fn]]
-            [sicp.pascal :refer [amount-in-level]]))
+            [sicp.prime :refer [smallest-divisor]]))
 
 (defn -main []
   (println (three-fn 11))
-  (println (amount-in-level 11)))
+  (println (smallest-divisor 11)))
