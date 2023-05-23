@@ -1,7 +1,7 @@
 (ns sicp.core
   (:require [sicp.three-fn :refer [three-fn]]
-            [sicp.prime :refer [smallest-divisor]]))
+            [sicp.sum :refer [sum-iter]]))
 
 (defn -main []
   (println (three-fn 11))
-  (println (smallest-divisor 11)))
+  (println (sum-iter identity 0 inc 10)))
