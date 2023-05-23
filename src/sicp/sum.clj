@@ -34,3 +34,18 @@
 
 (defn factorial [n]
   (product-lin identity 1 inc n))
+
+(defn accumulate [combiner null-value term a next b]
+  ((fn acc-iter [term a next b]
+     (if (> a b)
+       null-value
+       (combiner
+        (term a)
+        (acc-iter term (next a) next b))))
+   term
+   a
+   next
+   b))
+
+(defn product-accum [term a next b]
+  (accumulate * 1 term a next b))
