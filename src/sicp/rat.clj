@@ -1,6 +1,21 @@
 (ns sicp.rat)
 
-(defn make-rat [n d] [n d])
+(defn gcd [a b]
+  (if (= b 0)
+    a
+    (gcd b (mod a b))))
+
+(defn neg [n]
+  (- 0 (abs n)))
+
+(defn make-rat [n d]
+  (let [g (gcd n d)]
+    [(/ n g) (/ d g)]))
+
+(defn make-rat-pos-neg [n d]
+  (let [g (gcd n d)]
+    [((if (pos? (/ n d)) abs neg) (/ n g)) (abs (/ d g))]))
+
 (defn numer [x] (first x))
 (defn denom [x] (last x))
 
@@ -23,6 +38,7 @@
      (* (numer y) (denom x))))
 
 (def one-half (make-rat 1 2))
+(def one-third (make-rat 1 3))
 
 (defn print-rat [rat]
   (println (numer rat) "/" (denom rat)))
