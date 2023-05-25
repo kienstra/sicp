@@ -47,5 +47,17 @@
    next
    b))
 
+(defn filtered-accumulate [combiner pred? null-value term a next b]
+  ((fn acc-iter [term a next b]
+     (if (> a b)
+       null-value
+       (combiner
+        (if (pred? a) (term a) null-value)
+        (acc-iter term (next a) next b))))
+   term
+   a
+   next
+   b))
+
 (defn product-accum [term a next b]
   (accumulate * 1 term a next b))

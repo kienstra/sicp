@@ -1,7 +1,7 @@
 (ns sicp.core
   (:require [sicp.three-fn :refer [three-fn]]
-            [sicp.sum :refer [sum-iter]]))
+            [sicp.fixed-point :refer [x-pow-x]]))
 
 (defn -main []
   (println (three-fn 11))
-  (println (sum-iter identity 0 inc 10)))
+  (println (x-pow-x 1000)))
