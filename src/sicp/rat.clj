@@ -42,3 +42,19 @@
 
 (defn print-rat [rat]
   (println (numer rat) "/" (denom rat)))
+
+(defn make-point [x y]
+  [x y])
+(defn x-point [p]
+  (first p))
+(defn y-point [p]
+  (last p))
+
+(defn average [& args]
+  (/ (reduce + args) (count args)))
+
+(defn midpoint-segment [p q]
+  [(average (x-point p) (x-point q)) (average (y-point p) (y-point q))])
+
+(defn print-point [p]
+  (println "(" (x-point p) "," (y-point p) ")"))
