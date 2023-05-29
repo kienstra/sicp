@@ -1,7 +1,6 @@
 (ns sicp.core
   (:require [sicp.three-fn :refer [three-fn]]
-            [sicp.rat :refer [make-rat]]))
+            [sicp.sequence :refer [square-tree]]))
 
 (defn -main []
-  (println (three-fn 11))
-  (println (make-rat 1 2)))
+  (println (three-fn 11)))
