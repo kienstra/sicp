@@ -6,9 +6,10 @@
 (defn =number? [exp num]
   (and (number? exp) (= exp num)))
 (defn make-sum [a1 a2]
-  (cond (or (=number? a1 0) (nil? a1)) a2
-        (or (=number? a2 0) (nil? a2) (= '() a2)) a1
+  (cond (=number? a1 0) a2
+        (or (=number? a2 0) (= '() a2)) a1
         (and (number? a1) (number? a2)) (+ a1 a2)
+        (and (seq? a2) (rest a2)) (list '+ a1 (make-sum (first a2) (rest a2)))
         :else (list '+ a1 a2)))
 (defn make-subtraction [a1 a2]
   (cond (or (=number? a1 0) (nil? a1)) (- a2)
@@ -20,7 +21,6 @@
          (=number? m1 0) (=number? m2 0))
         0
         (= '() m2) m1
-        (nil? m2) m1
         (=number? m1 1) m2
         (=number? m2 1) m1
         (and (number? m1) (number? m2)) (* m1 m2)
