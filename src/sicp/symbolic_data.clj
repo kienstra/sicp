@@ -6,25 +6,51 @@
 (defn =number? [exp num]
   (and (number? exp) (= exp num)))
 (defn make-sum [a1 a2]
-  (cond (=number? a1 0) a2
-        (=number? a2 0) a1
+  (cond (or (=number? a1 0) (nil? a1)) a2
+        (or (=number? a2 0) (nil? a2) (= '() a2)) a1
         (and (number? a1) (number? a2)) (+ a1 a2)
         :else (list '+ a1 a2)))
+(defn make-subtraction [a1 a2]
+  (cond (or (=number? a1 0) (nil? a1)) (- a2)
+        (or (=number? a2 0) (nil? a2)) a1
+        (and (number? a1) (number? a2)) (- a1 a2)
+        :else (list '- a1 a2)))
 (defn make-product [m1 m2]
-  (cond (or (=number? m1 0) (=number? m2 0)) 0
+  (cond (or
+         (=number? m1 0) (=number? m2 0))
+        0
+        (= '() m2) m1
+        (nil? m2) m1
         (=number? m1 1) m2
         (=number? m2 1) m1
         (and (number? m1) (number? m2)) (* m1 m2)
+        (and (seq? m2) (rest m2)) (list '* m1 (make-product (first m2) (rest m2)))
         :else (list '* m1 m2)))
-(defn pair? [x] (and (list? x) (= 3 (count x))))
+(defn pair? [x] (and (list? x) (= (count x) 3)))
+(defn at-least-pair? [x]
+  (and (list? x) (>= (count x) 3)))
 (defn sum? [x]
-  (and (pair? x) (= (first x) '+)))
+  (and (at-least-pair? x) (= (first x) '+)))
 (defn addend [s] (nth s 1))
-(defn augend [s] (nth s 2))
+(defn augend [s]
+  (let [[_ _ b & args] s]
+    (make-sum b args)))
 (defn product? [x]
-  (and (pair? x) (= (first x) '*)))
+  (and (at-least-pair? x) (= (first x) '*)))
 (defn multiplier [p] (nth p 1))
-(defn multiplicand [p] (nth p 2))
+(defn multiplicand [p]
+  (let [[_ _ b & args] p]
+    (make-product b args)))
+
+(defn exponentiation? [x]
+  (and (pair? x) (= (first x) '**)))
+(defn base [s] (nth s 1))
+(defn exponent [s] (nth s 2))
+(defn make-exponentiation [m1 m2]
+  (cond (=number? m2 0) 1
+        (=number? m2 1) m1
+        (and (number? m1) (number? m2)) (Math/pow m1 m2)
+        :else (list '** m1 m2)))
 
 (defn deriv [exp var]
   (cond (number? exp) 0
@@ -39,5 +65,9 @@
                        (deriv (multiplicand exp) var))
          (make-product (deriv (multiplier exp) var)
                        (multiplicand exp)))
+        (exponentiation? exp)
+        (make-exponentiation
+         (make-product (base exp) (exponent exp))
+         (make-subtraction (base exp) 1))
         :else
         {:error (str "unknown expression type -- DERIV" exp)}))
