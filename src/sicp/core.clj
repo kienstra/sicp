@@ -1,6 +1,5 @@
 (ns sicp.core
-  (:require [sicp.three-fn :refer [three-fn]]
-            [sicp.sequence :refer [square-tree]]))
+  (:require [sicp.symbolic-data :refer [deriv]]))
 
 (defn -main []
-  (println (three-fn 11)))
+  (println (deriv 3 '(11 4 24))))
