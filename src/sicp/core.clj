@@ -1,5 +1,5 @@
 (ns sicp.core
-  (:require [sicp.symbolic-data :refer [deriv]]))
+  (:require [sicp.tree :refer [element-of-set? make-tree]]))
 
 (defn -main []
-  (println (deriv 3 '(11 4 24))))
+  (println (element-of-set? 9 (make-tree 5 1 9))))
