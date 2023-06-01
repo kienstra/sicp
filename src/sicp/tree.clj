@@ -15,7 +15,7 @@
 ; > (5 (1 nil (3 nil nil)) (9 (7 nil nil) (11 nil nil)))
 ;
 ;        5
-;   1        9
+;   1         9
 ; 3   7    11
 (defn partial-tree [elts n] ; '(1 3 5 7 9 11) 6
   (if (= n 0)

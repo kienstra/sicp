@@ -1,5 +1,5 @@
 (ns sicp.core
-  (:require [sicp.tree :refer [element-of-set? make-tree]]))
+  (:require [sicp.huffman :refer [generate-huffman-tree sample-pairs]]))
 
 (defn -main []
-  (println (element-of-set? 9 (make-tree 5 1 9))))
+  (println (generate-huffman-tree sample-pairs)))
