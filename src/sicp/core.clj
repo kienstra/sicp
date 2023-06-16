@@ -1,5 +1,5 @@
 (ns sicp.core
-  (:require [sicp.huffman :refer [generate-huffman-tree sample-pairs]]))
+  (:require [sicp.complex :refer [deriv]]))
 
 (defn -main []
-  (println (generate-huffman-tree sample-pairs)))
+  (println (deriv '(* (* x y) (+ x 3)) 'x)))
