@@ -1,8 +1,10 @@
 (ns sicp.complex)
 
+(defn variable? [x] (symbol? x))
 (defn operator [exp] (first exp))
 (defn operands [exp] (rest exp))
-(defn variable? [x] (symbol? x))
+(defn operand? [exp]
+  (or (variable? exp) (number? exp)))
 (defn same-variable? [v1 v2]
   (and (variable? v1) (variable? v2) (= v1 v2)))
 
@@ -15,7 +17,7 @@
    (alter table (fn [previous-table]
                   (into previous-table
                         {op (into (get previous-table op {})
-                              {type item})})))))
+                                  {type item})})))))
 
 (defn =number? [exp num]
   (and (number? exp) (= exp num)))
@@ -38,7 +40,7 @@
         (=number? m1 1) m2
         (=number? m2 1) m1
         (and (number? m1) (number? m2)) (* m1 m2)
-        (and (seq? m2) (rest m2)) (list '* m1 (make-product (first m2) (rest m2)))
+        (and (not (operand? (first m2))) (seq? m2) (rest m2)) (list '* m1 (make-product (first m2) (rest m2)))
         :else (list '* m1 m2)))
 (defn multiplier [p] (first p))
 (defn multiplicand [p]
@@ -51,14 +53,34 @@
         :else ((get-item 'deriv (operator exp)) (operands exp)
                                                 var)))
 (defn sum [exp var]
-            (make-sum (deriv (addend exp) var)
-                      (deriv (augend exp) var)))
+  (make-sum (deriv (addend exp) var)
+            (deriv (augend exp) var)))
+(defn make-subtraction [a1 a2]
+  (cond (or (=number? a1 0) (nil? a1)) (- a2)
+        (or (=number? a2 0) (nil? a2)) a1
+        (and (number? a1) (number? a2)) (- a1 a2)
+        :else (list '- a1 a2)))
+(defn base [s] (first s))
+(defn exponent [s] (second s))
+(defn make-exponentiation [m1 m2]
+  (cond (=number? m2 0) 1
+        (=number? m2 1) m1
+        (and (number? m1) (number? m2)) (Math/pow m1 m2)
+        :else (list '** m1 m2)))
 
 (defn install-deriv-package! []
-  (put-item! 'deriv '+ sum)
+  (put-item! 'deriv '+ (fn [exp var]
+                         (make-sum (deriv (addend exp) var)
+                                   (deriv (augend exp) var))))
   (put-item! 'deriv '* (fn [exp var]
                          (make-sum
                           (make-product (multiplier exp)
                                         (deriv (multiplicand exp) var))
                           (make-product (deriv (multiplier exp) var)
-                                        (multiplicand exp))))))
+                                        (multiplicand exp)))))
+  (put-item! 'deriv '** (fn [exp _]
+                          (make-product
+                           (exponent exp)
+                           (make-exponentiation
+                            (base exp)
+                            (make-subtraction (exponent exp) 1))))))
