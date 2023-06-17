@@ -91,3 +91,6 @@
       (list range angle)
       :else
       {:error (str "Unknown op -- MAKE-FROM-MAG_ANG" op)})))
+
+(defn make-scheme-number [n]
+  ((get-operation 'make 'scheme-number) n))

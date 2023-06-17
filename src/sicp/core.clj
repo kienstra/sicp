@@ -1,5 +1,11 @@
 (ns sicp.core
-  (:require [sicp.complex :refer [deriv]]))
+  (:require [sicp.generic :refer [install-scheme-number-package!
+                                  install-complex-package!
+                                  install-rational-package!
+                                  make-scheme-number]]))
 
 (defn -main []
-  (println (deriv '(* (* x y) (+ x 3)) 'x)))
+  (install-scheme-number-package!)
+  (install-complex-package!)
+  (install-rational-package!)
+  (println (make-scheme-number 4)))
