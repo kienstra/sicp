@@ -29,7 +29,7 @@
     (number? datum)
     datum
     :else {:error (str "Bad datum -- TYPE-TAG" datum)}))
-(defn apply-generic [op & args]
+(defn apply-generic-naive [op & args]
   (let [type-tags (map type-tag args)
         proc (get-operation op type-tags)]
     (if proc
@@ -51,8 +51,7 @@
   (put-operation! 'equ? '(scheme-number scheme-number)
                   (fn [x y] (= x y)))
   (put-operation! '=zero? '(scheme-number) zero?)
-  (put-operation! 'make 'scheme-number
-                  (fn [x] (tag-scheme-number x)))
+  (put-operation! 'make 'scheme-number identity)
   'done)
 
 (defn make-scheme-number [n]
@@ -144,13 +143,13 @@
 
 (defn install-complex-package! []
   (put-operation! 'add '(complex complex)
-                  (fn [z1 z2] (tag-complex (add-complex z1 z2))))
+                  (fn [z1 z2] (add-complex z1 z2)))
   (put-operation! 'sub '(complex complex)
-                  (fn [z1 z2] (tag-complex (sub-complex z1 z2))))
+                  (fn [z1 z2] (sub-complex z1 z2)))
   (put-operation! 'mul '(complex complex)
-                  (fn [z1 z2] (tag-complex (mul-complex z1 z2))))
+                  (fn [z1 z2] (mul-complex z1 z2)))
   (put-operation! 'div '(complex complex)
-                  (fn [z1 z2] (tag-complex (div-complex z1 z2))))
+                  (fn [z1 z2] (div-complex z1 z2)))
   (put-operation! 'equ? '(complex complex)
                   (fn [z1 z2] (equ-complex? z1 z2)))
   (put-operation! '=zero? '(complex) =zero-complex?)
@@ -162,7 +161,7 @@
 
 (def coercion-table (ref {}))
 (defn get-coercion [op type]
-  (get (get (deref table) op {}) type))
+  (get (get (deref coercion-table) op {}) type))
 (defn put-coercion! [op type item]
   (dosync
    (alter table (fn [previous-table]
@@ -177,7 +176,7 @@
 
 (defn apply-generic-coerce [op & args]
   (let [type-tags (map type-tag args)
-        proc (get op type-tags)]
+        proc (get-operation op type-tags)]
     (if proc
       (apply proc (map contents args))
       (if (= (count args) 2)
@@ -202,9 +201,9 @@
         {:error (str "No method for these types"
                      (list op type-tags))}))))
 
-(defn add [x y] (apply-generic 'add x y))
-(defn sub [x y] (apply-generic 'sub x y))
-(defn mul [x y] (apply-generic 'mul x y))
-(defn div [x y] (apply-generic 'div x y))
-(defn equ? [x y] (apply-generic 'equ? x y))
-(defn =zero? [x] (apply-generic '=zero? x))
+(defn add [x y] (apply-generic-coerce 'add x y))
+(defn sub [x y] (apply-generic-coerce 'sub x y))
+(defn mul [x y] (apply-generic-coerce 'mul x y))
+(defn div [x y] (apply-generic-coerce 'div x y))
+(defn equ? [x y] (apply-generic-coerce 'equ? x y))
+(defn =zero? [x] (apply-generic-coerce '=zero? x))
