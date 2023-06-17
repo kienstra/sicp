@@ -160,6 +160,48 @@
                   (fn [r a] (tag-complex (make-complex-from-mag-ang r a))))
   'done)
 
+(def coercion-table (ref {}))
+(defn get-coercion [op type]
+  (get (get (deref table) op {}) type))
+(defn put-coercion! [op type item]
+  (dosync
+   (alter table (fn [previous-table]
+                  (into previous-table
+                        {op (into (get previous-table op {})
+                                  {type item})})))))
+
+(defn scheme-number->complex [n]
+  (make-complex-from-real-imag (contents n) 0))
+
+(put-coercion! 'scheme-number 'complex scheme-number->complex)
+
+(defn apply-generic-coerce [op & args]
+  (let [type-tags (map type-tag args)
+        proc (get op type-tags)]
+    (if proc
+      (apply proc (map contents args))
+      (if (= (count args) 2)
+        (let [type1 (first type-tags)
+              type2 (second type-tags)
+              a1 (first args)
+              a2 (second args)
+              t1->t2 (get-coercion type1 type2)
+              t2->t1 (get-coercion type2 type1)]
+          (cond
+            (= type1 type2)
+            {:error (str "No method for these same types"
+                         type1
+                         type2)}
+            t1->t2
+            (apply-generic-coerce op (t1->t2 a1) a2)
+            t2->t1
+            (apply-generic-coerce op a1 (t2->t1 a2))
+            :else
+            {:error (str "No method for these types"
+                         (list op type-tags))}))
+        {:error (str "No method for these types"
+                     (list op type-tags))}))))
+
 (defn add [x y] (apply-generic 'add x y))
 (defn sub [x y] (apply-generic 'sub x y))
 (defn mul [x y] (apply-generic 'mul x y))
