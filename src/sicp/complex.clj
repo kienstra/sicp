@@ -9,10 +9,9 @@
   (and (variable? v1) (variable? v2) (= v1 v2)))
 
 (def table (ref {}))
-(defn get-item [op type]
+(defn get-operation [op type]
   (get (get (deref table) op {}) type))
-
-(defn put-item! [op type item]
+(defn put-operation! [op type item]
   (dosync
    (alter table (fn [previous-table]
                   (into previous-table
@@ -46,15 +45,6 @@
 (defn multiplicand [p]
   (let [[_ b & args] p]
     (make-product b args)))
-
-(defn deriv [exp var]
-  (cond (number? exp) 0
-        (variable? exp) (if (same-variable? exp var) 1 0)
-        :else ((get-item 'deriv (operator exp)) (operands exp)
-                                                var)))
-(defn sum [exp var]
-  (make-sum (deriv (addend exp) var)
-            (deriv (augend exp) var)))
 (defn make-subtraction [a1 a2]
   (cond (or (=number? a1 0) (nil? a1)) (- a2)
         (or (=number? a2 0) (nil? a2)) a1
@@ -68,19 +58,36 @@
         (and (number? m1) (number? m2)) (Math/pow m1 m2)
         :else (list '** m1 m2)))
 
+(defn deriv [exp var]
+  (cond (number? exp) 0
+        (variable? exp) (if (same-variable? exp var) 1 0)
+        :else ((get-operation 'deriv (operator exp)) (operands exp)
+                                                     var)))
 (defn install-deriv-package! []
-  (put-item! 'deriv '+ (fn [exp var]
-                         (make-sum (deriv (addend exp) var)
-                                   (deriv (augend exp) var))))
-  (put-item! 'deriv '* (fn [exp var]
-                         (make-sum
-                          (make-product (multiplier exp)
-                                        (deriv (multiplicand exp) var))
-                          (make-product (deriv (multiplier exp) var)
-                                        (multiplicand exp)))))
-  (put-item! 'deriv '** (fn [exp _]
-                          (make-product
-                           (exponent exp)
-                           (make-exponentiation
-                            (base exp)
-                            (make-subtraction (exponent exp) 1))))))
+  (put-operation! 'deriv '+ (fn [exp var]
+                              (make-sum (deriv (addend exp) var)
+                                        (deriv (augend exp) var))))
+  (put-operation! 'deriv '* (fn [exp var]
+                              (make-sum
+                               (make-product (multiplier exp)
+                                             (deriv (multiplicand exp) var))
+                               (make-product (deriv (multiplier exp) var)
+                                             (multiplicand exp)))))
+  (put-operation! 'deriv '** (fn [exp _]
+                               (make-product
+                                (exponent exp)
+                                (make-exponentiation
+                                 (base exp)
+                                 (make-subtraction (exponent exp) 1))))))
+
+(defn attach-tag [type-tag contents]
+  (cons type-tag contents))
+(defn make-from-mag-ang [range angle]
+  (fn dispatch [op]
+    (cond
+      (= op 'rectangular)
+      (list (* range (Math/cos angle)) (* range (Math/sin angle)))
+      (= op 'polar)
+      (list range angle)
+      :else
+      {:error (str "Unknown op -- MAKE-FROM-MAG_ANG" op)})))
