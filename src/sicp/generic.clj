@@ -140,6 +140,8 @@
 (defn tag-complex [z] (attach-tag 'complex z))
 (defn make-from-real-imag-polar [x y]
   (list x y))
+(defn make-complex-from-mag-ang-polar [x y]
+  (list x y))
 
 (defn install-complex-package! []
   (put-operation! 'add '(complex complex)
@@ -156,7 +158,7 @@
   (put-operation! 'make-from-real-imag 'complex
                   (fn [x y] (tag-complex (make-from-real-imag-polar x y))))
   (put-operation! 'make-from-mag-ang 'complex
-                  (fn [r a] (tag-complex (make-complex-from-mag-ang r a))))
+                  (fn [r a] (tag-complex (make-complex-from-mag-ang-polar r a))))
   'done)
 
 (def coercion-table (ref {}))
