@@ -12,15 +12,23 @@
 (defn pair? [tree]
   (and (list? tree) (= 2 (count tree))))
 (defn attach-tag [type-tag contents]
-  (list type-tag contents))
+  (if (number? contents)
+    contents
+    (list type-tag contents)))
 (defn type-tag [datum]
-  (if (pair? datum)
+  (cond
+    (pair? datum)
     (first datum)
-    {:error (str "Bad tagged datum -- TYPE-TAG" datum)}))
+    (number? datum)
+    'scheme-number
+    :else {:error (str "Bad tagged datum -- TYPE-TAG" datum)}))
 (defn contents [datum]
-  (if (pair? datum)
+  (cond
+    (pair? datum)
     (second datum)
-    {:error (str "Bad datum -- TYPE-TAG" datum)}))
+    (number? datum)
+    datum
+    :else {:error (str "Bad datum -- TYPE-TAG" datum)}))
 (defn apply-generic [op & args]
   (let [type-tags (map type-tag args)
         proc (get-operation op type-tags)]
