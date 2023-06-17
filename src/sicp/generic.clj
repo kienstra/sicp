@@ -50,6 +50,7 @@
                   (fn [x y] (tag-scheme-number (/ x y))))
   (put-operation! 'equ? '(scheme-number scheme-number)
                   (fn [x y] (= x y)))
+  (put-operation! '=zero? '(scheme-number) zero?)
   (put-operation! 'make 'scheme-number
                   (fn [x] (tag-scheme-number x)))
   'done)
@@ -82,10 +83,13 @@
   (make-rat (* (numer x) (denom y))
             (* (denom x) (numer y))))
 
-(defn equ-rat [x y]
+(defn equ-rat? [x y]
   (and
    (= (numer x) (numer y))
    (= (denom x) (denom y))))
+
+(defn =zero-rat? [x]
+  (= 0 (numer x)))
 
 (defn tag-rat [x] (attach-tag 'rational x))
 (defn install-rational-package! []
@@ -98,8 +102,8 @@
   (put-operation! 'div '(rational rational)
                   (fn [x y] (tag-rat (div-rat x y))))
   (put-operation! 'equ? '(rational rational)
-                  (fn [x y] (equ-rat x y)))
-
+                  (fn [x y] (equ-rat? x y)))
+  (put-operation! '=zero? '(rational) =zero-rat?)
   (put-operation! 'make 'rational
                   (fn [n d] (tag-rat (make-rat n d))))
   'done)
@@ -129,9 +133,11 @@
 (defn div-complex [z1 z2]
   (make-complex-from-mag-ang (/ (magnitude z1) (magnitude z2))
                              (- (angle z1) (angle z2))))
-(defn equ-complex [z1 z2]
+(defn equ-complex? [z1 z2]
   (and (= (real-part z1) (real-part z2))
        (= (imag-part z1) (imag-part z2))))
+(defn =zero-complex? [z]
+  (= 0 (real-part z)))
 (defn tag-complex [z] (attach-tag 'complex z))
 (defn make-from-real-imag-polar [x y]
   (list x y))
@@ -146,7 +152,8 @@
   (put-operation! 'div '(complex complex)
                   (fn [z1 z2] (tag-complex (div-complex z1 z2))))
   (put-operation! 'equ? '(complex complex)
-                  (fn [z1 z2] (equ-complex z1 z2)))
+                  (fn [z1 z2] (equ-complex? z1 z2)))
+  (put-operation! '=zero? '(complex) =zero-complex?)
   (put-operation! 'make-from-real-imag 'complex
                   (fn [x y] (tag-complex (make-from-real-imag-polar x y))))
   (put-operation! 'make-from-mag-ang 'complex
@@ -158,3 +165,4 @@
 (defn mul [x y] (apply-generic 'mul x y))
 (defn div [x y] (apply-generic 'div x y))
 (defn equ? [x y] (apply-generic 'equ? x y))
+(defn =zero? [x] (apply-generic '=zero? x))
