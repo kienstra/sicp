@@ -38,8 +38,7 @@
        (str "No method for these types -- APPLY-GENERIC"
             (list op type-tags))})))
 (defn install-scheme-number-package! []
-  (put-operation! 'add '(scheme-number scheme-number)
-                  (fn [x y] (+ x y)))
+  (put-operation! 'add '(scheme-number scheme-number) +)
   (put-operation! 'sub '(scheme-number scheme-number)
                   (fn [x y] (- x y)))
   (put-operation! 'mul '(scheme-number scheme-number)
@@ -172,33 +171,51 @@
 (defn scheme-number->complex [n]
   (make-complex-from-real-imag (contents n) 0))
 
-(defn apply-generic-coerce [op & args]
-  (let [type-tags (map type-tag args)
-        [type1 type2] type-tags
-        proc (get-operation op type-tags)]
-    (if proc
-      (apply proc (map contents args))
-      (if (> (count args) 1)
-        (let [a1 (first args)
-              a2 (second args)
-              t1->t2 (get-coercion type1 type2)
-              t2->t1 (get-coercion type2 type1)]
-          (cond
-            (= type1 type2)
-            {:error (str "No method for these same types"
-                         type1
-                         type2)}
-            t1->t2
-            (apply-generic-coerce op (t1->t2 a1) a2)
-            t2->t1
-            (apply-generic-coerce op a1 (t2->t1 a2))
-            :else
-            {:error (str "No method for these types"
-                         (list op type-tags))}))
-        {:error (str "No method for these types"
-                     (list op type-tags))}))))
+(defn spread
+  "Forked from Clojure core: https://github.com/clojure/clojure/blob/38bafca9e76cd6625d8dce5fb6d16b87845c8b9d/src/clj/clojure/core.clj#LL639C1-L646C58"
+  [arglist]
+  (cond
+    (nil? arglist) nil
+    (nil? (next arglist)) (seq (first arglist))
+    :else (cons (first arglist) (spread (next arglist)))))
 
-(defn add [x y] (apply-generic-coerce 'add x y))
+(defn apply-generic-coerce [op & args]
+  (let [operands (take 2 args)
+        [a1 a2] operands
+        type-tags (map type-tag operands)
+        proc (get-operation op type-tags)
+        [type1 type2] type-tags
+        remaining (next (next args))]
+    (cond
+      (and proc (not (nil? remaining)))
+      (apply-generic-coerce
+       op
+       (apply proc (map contents operands))
+       (spread remaining))
+      proc
+      (apply proc (map contents operands))
+      (not (nil? a2))
+      (let [t1->t2 (get-coercion type1 type2)
+            t2->t1 (get-coercion type2 type1)]
+        (cond
+          (= type1 type2)
+          {:error (str "No method for these same types"
+                       type1
+                       type2)}
+          t1->t2
+          (apply-generic-coerce op (t1->t2 a1) a2)
+          t2->t1
+          (apply-generic-coerce op a1 (t2->t1 a2))
+          :else
+          {:error (str "No method for these types"
+                       (list op type-tags))}))
+      :else {:error (str "No method for these types"
+                         (list op type-tags))})))
+
+(defn add [x y & remaining]
+  (if (nil? remaining)
+    (apply-generic-coerce 'add x y)
+    (apply-generic-coerce 'add x y remaining)))
 (defn sub [x y] (apply-generic-coerce 'sub x y))
 (defn mul [x y] (apply-generic-coerce 'mul x y))
 (defn div [x y] (apply-generic-coerce 'div x y))
