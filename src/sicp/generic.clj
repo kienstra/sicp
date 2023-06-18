@@ -181,17 +181,18 @@
 
 (defn apply-generic-coerce [op & args]
   (let [operands (take 2 args)
+        remaining (nth args 2 nil)
         [a1 a2] operands
         type-tags (map type-tag operands)
         proc (get-operation op type-tags)
-        [type1 type2] type-tags
-        remaining (next (next args))]
+        [type1 type2] type-tags]
     (cond
-      (and proc (not (nil? remaining)))
-      (apply-generic-coerce
+      (and proc (seq remaining))
+      (apply
+       apply-generic-coerce
        op
        (apply proc (map contents operands))
-       (spread remaining))
+       remaining)
       proc
       (apply proc (map contents operands))
       (not (nil? a2))

@@ -28,18 +28,18 @@
     (is (= 16 (add 9 3 4))))
 
   (testing "Rational numbers"
-        (is (= '(rational (8 3)) (add (make-rational 4 3) (make-rational 4 3))))
-        (is (= '(rational (2 3)) (sub (make-rational 4 3) (make-rational 2 3))))
-        (is (= '(rational (25 16)) (mul (make-rational 5 4) (make-rational 5 4))))
-        (is (= '(rational (1 1)) (div (make-rational 8 3) (make-rational 8 3)))))
+    (is (= '(rational (8 3)) (add (make-rational 4 3) (make-rational 4 3))))
+    (is (= '(rational (2 3)) (sub (make-rational 4 3) (make-rational 2 3))))
+    (is (= '(rational (25 16)) (mul (make-rational 5 4) (make-rational 5 4))))
+    (is (= '(rational (1 1)) (div (make-rational 8 3) (make-rational 8 3)))))
 
-      (testing "Complex numbers"
-        (is (= '(complex (33 0)) (add (make-complex-from-real-imag 18 0) (make-complex-from-real-imag 15 0))))
-        (is (= '(complex (3 0)) (sub (make-complex-from-real-imag 18 0) (make-complex-from-real-imag 15 0))))
-        (is (= '(complex (2.0000000000000004 1.5707963267948966)) (mul (make-complex-from-real-imag 1 1) (make-complex-from-real-imag 1 1))))
-        (is (= '(complex (7.071067811865476 2.356194490192345)) (mul (make-complex-from-real-imag 3 1) (make-complex-from-real-imag 2 1)))))
+  (testing "Complex numbers"
+    (is (= '(complex (33 0)) (add (make-complex-from-real-imag 18 0) (make-complex-from-real-imag 15 0))))
+    (is (= '(complex (3 0)) (sub (make-complex-from-real-imag 18 0) (make-complex-from-real-imag 15 0))))
+    (is (= '(complex (2.0000000000000004 1.5707963267948966)) (mul (make-complex-from-real-imag 1 1) (make-complex-from-real-imag 1 1))))
+    (is (= '(complex (7.071067811865476 2.356194490192345)) (mul (make-complex-from-real-imag 3 1) (make-complex-from-real-imag 2 1)))))
 
-      (testing "Coercion"
-        (put-coercion! 'scheme-number 'complex scheme-number->complex)
-        (is (= '(complex (40 0)) (add 39 (make-complex-from-real-imag 1 0))))
-        (is (= '(complex (40 0)) (add (make-complex-from-real-imag 1 0) 39)))))
+  (testing "Coercion"
+    (put-coercion! 'scheme-number 'complex scheme-number->complex)
+    (is (= '(complex (40 0)) (add 39 (make-complex-from-real-imag 1 0))))
+    (is (= '(complex (40 0)) (add (make-complex-from-real-imag 1 0) 39)))))
