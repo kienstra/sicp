@@ -37,17 +37,15 @@
       {:error
        (str "No method for these types -- APPLY-GENERIC"
             (list op type-tags))})))
-(defn tag-scheme-number [x]
-  (attach-tag 'scheme-number x))
 (defn install-scheme-number-package! []
   (put-operation! 'add '(scheme-number scheme-number)
-                  (fn [x y] (tag-scheme-number (+ x y))))
+                  (fn [x y] (+ x y)))
   (put-operation! 'sub '(scheme-number scheme-number)
-                  (fn [x y] (tag-scheme-number (- x y))))
+                  (fn [x y] (- x y)))
   (put-operation! 'mul '(scheme-number scheme-number)
-                  (fn [x y] (tag-scheme-number (* x y))))
+                  (fn [x y] (* x y)))
   (put-operation! 'div '(scheme-number scheme-number)
-                  (fn [x y] (tag-scheme-number (/ x y))))
+                  (fn [x y] (/ x y)))
   (put-operation! 'equ? '(scheme-number scheme-number)
                   (fn [x y] (= x y)))
   (put-operation! '=zero? '(scheme-number) zero?)
@@ -167,9 +165,9 @@
 (defn put-coercion! [type1 type2 coercion]
   (dosync
    (alter coercion-table (fn [previous-table]
-                  (into previous-table
-                        {type1 (into (get previous-table type1 {})
-                                  {type2 coercion})})))))
+                           (into previous-table
+                                 {type1 (into (get previous-table type1 {})
+                                              {type2 coercion})})))))
 
 (defn scheme-number->complex [n]
   (make-complex-from-real-imag (contents n) 0))
