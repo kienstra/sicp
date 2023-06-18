@@ -9,6 +9,8 @@
                                   make-rational
                                   make-scheme-number
                                   mul
+                                  put-coercion!
+                                  scheme-number->complex
                                   sub]]))
 
 (deftest generic-test
@@ -32,4 +34,8 @@
     (is (= '(complex (33 0)) (add (make-complex-from-real-imag 18 0) (make-complex-from-real-imag 15 0))))
     (is (= '(complex (3 0)) (sub (make-complex-from-real-imag 18 0) (make-complex-from-real-imag 15 0))))
     (is (= '(complex (2.0000000000000004 1.5707963267948966)) (mul (make-complex-from-real-imag 1 1) (make-complex-from-real-imag 1 1))))
-    (is (= '(complex (7.071067811865476 2.356194490192345)) (mul (make-complex-from-real-imag 3 1) (make-complex-from-real-imag 2 1))))))
+    (is (= '(complex (7.071067811865476 2.356194490192345)) (mul (make-complex-from-real-imag 3 1) (make-complex-from-real-imag 2 1)))))
+
+  (testing "Coercion"
+    (put-coercion! 'scheme-number 'complex scheme-number->complex)
+    (is (= '(complex (40 0)) (add 39 (make-complex-from-real-imag 1 0))))))

@@ -164,27 +164,24 @@
 (def coercion-table (ref {}))
 (defn get-coercion [op type]
   (get (get (deref coercion-table) op {}) type))
-(defn put-coercion! [op type item]
+(defn put-coercion! [type1 type2 coercion]
   (dosync
-   (alter table (fn [previous-table]
+   (alter coercion-table (fn [previous-table]
                   (into previous-table
-                        {op (into (get previous-table op {})
-                                  {type item})})))))
+                        {type1 (into (get previous-table type1 {})
+                                  {type2 coercion})})))))
 
 (defn scheme-number->complex [n]
   (make-complex-from-real-imag (contents n) 0))
 
-(put-coercion! 'scheme-number 'complex scheme-number->complex)
-
 (defn apply-generic-coerce [op & args]
   (let [type-tags (map type-tag args)
+        [type1 type2] type-tags
         proc (get-operation op type-tags)]
     (if proc
       (apply proc (map contents args))
-      (if (= (count args) 2)
-        (let [type1 (first type-tags)
-              type2 (second type-tags)
-              a1 (first args)
+      (if (> (count args) 1)
+        (let [a1 (first args)
               a2 (second args)
               t1->t2 (get-coercion type1 type2)
               t2->t1 (get-coercion type2 type1)]
