@@ -38,4 +38,5 @@
 
   (testing "Coercion"
     (put-coercion! 'scheme-number 'complex scheme-number->complex)
-    (is (= '(complex (40 0)) (add 39 (make-complex-from-real-imag 1 0))))))
+    (is (= '(complex (40 0)) (add 39 (make-complex-from-real-imag 1 0))))
+    (is (= '(complex (40 0)) (add (make-complex-from-real-imag 1 0) 39)))))
