@@ -187,7 +187,7 @@
         proc (get-operation op type-tags)
         [type1 type2] type-tags]
     (cond
-      (and proc (seq remaining))
+      (and proc remaining)
       (apply
        apply-generic-coerce
        op
