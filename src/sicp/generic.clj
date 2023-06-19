@@ -168,6 +168,8 @@
 
 (defn scheme-number->complex [n]
   (make-complex-from-real-imag (contents n) 0))
+(defn rational->scheme-number [n]
+  (apply / (contents n)))
 
 (defn apply-generic-coerce [op args]
   (let [operands (take 2 args)
@@ -181,7 +183,7 @@
       (apply-generic-coerce
        op
        (cons (apply proc (map contents operands))
-               remaining))
+             remaining))
       proc
       (apply proc (map contents operands))
       (not (nil? a2))
@@ -207,5 +209,5 @@
 (defn sub [& args] (apply-generic-coerce 'sub args))
 (defn mul [& args] (apply-generic-coerce 'mul args))
 (defn div [& args] (apply-generic-coerce 'div args))
-(defn equ? [& args ] (apply-generic-coerce 'equ? args))
+(defn equ? [& args] (apply-generic-coerce 'equ? args))
 (defn =zero? [& args] (apply-generic-coerce '=zero? args))
