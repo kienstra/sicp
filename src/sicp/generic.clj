@@ -195,9 +195,9 @@
                        type1
                        type2)}
           t1->t2
-          (apply-generic-coerce op (list (t1->t2 a1) a2))
+          (apply-generic-coerce op (cons (t1->t2 a1) (cons a2 remaining)))
           t2->t1
-          (apply-generic-coerce op (list a1 (t2->t1 a2)))
+          (apply-generic-coerce op (cons a1 (cons (t2->t1 a2) remaining)))
           :else
           {:error (str "No method for these types"
                        (list op type-tags))}))

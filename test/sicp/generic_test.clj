@@ -51,6 +51,11 @@
     (is (= '(complex (2.0000000000000004 1.5707963267948966)) (mul (make-complex-from-real-imag 1 1) (make-complex-from-real-imag 1 1))))
     (is (= '(complex (7.071067811865476 2.356194490192345)) (mul (make-complex-from-real-imag 3 1) (make-complex-from-real-imag 2 1)))))
 
+  (testing "Multiple complex numbers"
+    (is (= '(complex (35 0)) (add (make-complex-from-real-imag 18 0) (make-complex-from-real-imag 15 0) (make-complex-from-real-imag 2 0))))
+    (is (= '(complex (1 0)) (sub (make-complex-from-real-imag 18 0) (make-complex-from-real-imag 15 0) (make-complex-from-real-imag 2 0))))
+    (is (= '(complex (3.596498602883739 1.892546881191539)) (mul (make-complex-from-real-imag 1 1) (make-complex-from-real-imag 1 1) (make-complex-from-real-imag 1 1)))))
+
   (testing "Coercion"
     (put-coercion! 'scheme-number 'complex scheme-number->complex)
     (put-coercion! 'rational 'scheme-number rational->scheme-number)
@@ -61,5 +66,9 @@
 
   (testing "Coercion of multiple numbers"
     (put-coercion! 'scheme-number 'complex scheme-number->complex)
+    (put-coercion! 'rational 'scheme-number rational->scheme-number)
+
+    (is (= '(complex (42 0)) (add 39 (make-complex-from-real-imag 1 0) (make-complex-from-real-imag 2 0))))
+    (is (= '(complex (47 0)) (add (make-complex-from-real-imag 1 0) 3 (make-complex-from-real-imag 39 0) (make-complex-from-real-imag 4 0))))
     (is (= '(complex (41 0)) (add 39 1 (make-complex-from-real-imag 1 0))))
     (is (= 43 (add (make-rational 3 2) (make-rational 5 2) 39)))))
