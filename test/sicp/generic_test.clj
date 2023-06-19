@@ -86,7 +86,7 @@
     (is (= '(real 43.0) (add (make-rational 3 2) (make-rational 5 2) (make-real 39.0)))))
 
   (testing "Raise"
-    (is (= '(rational (30 1)) (raise-next 30 'integer 'rational)))
-    (is (= '(real 30.0) (raise-next '(rational (30 1)) 'rational 'real)))
-    (is (= '(complex (30.0 0)) (raise-next 30.0 'real 'complex)))
+    (is (= '(rational (30 1)) (raise-next 30 'integer)))
+    (is (= '(real 30.0) (raise-next '(rational (30 1)) 'rational)))
+    (is (= '(complex (30.0 0)) (raise-next 30.0 'real)))
     (is (= '(complex (30.0 0)) (raise (make-integer 30) 'complex)))))

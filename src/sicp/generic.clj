@@ -174,28 +174,23 @@
                   (fn [r a] (tag-complex (make-complex-from-mag-ang-polar r a))))
   'done)
 
-(defn raise-next [n from to]
+(defn raise-next [n from]
   (cond
-    (and (= from 'integer) (= to 'rational))
+    (= from 'integer)
     (make-rational (contents n) 1)
-    (and (= from 'rational) (= to 'real))
+    (= from 'rational)
     (make-real (double (/ (numer (contents n)) (denom (contents n)))))
-    (and (= from 'real) (= to 'complex))
+    (= from 'real)
     (make-complex-from-real-imag (contents n) 0)
-    :else {:error (println "Did not find a match from % to %" from to)}))
+    :else {:error (format "Could not raise %1$s from %2$s"
+                          n from)}))
 
 (defn raise [n to]
-  (let [from (type-tag n)
-        possible-raise {'integer 'rational
-                        'rational 'real
-                        'real 'complex}
-        next-level (get possible-raise from nil)]
-    (cond
-      (= next-level to)
-      (raise-next n from to)
-      next-level
-      (recur (raise-next n from next-level) to)
-      :else {:error (format "Cannot raise from %s to %s, from was %s" from to from)})))
+  (let [from (type-tag n)]
+    (if
+     (= from to)
+      n
+      (recur (raise-next n from) to))))
 
 (def coercion-table (ref {}))
 (defn get-coercion [op type]
@@ -240,7 +235,7 @@
           t2->t1
           (recur op (cons a1 (cons (t2->t1 a2) remaining)))
           :else
-          {:error (format "No method for the op %s and types %s and %s"
+          {:error (format "No method for the op %1$s and types %2$s and %3$s"
                           op type1 type2)})))))
 
 (defn add [& args]
