@@ -179,13 +179,13 @@
         proc (get-operation op type-tags)
         [type1 type2] type-tags]
     (cond
-      (and proc (seq remaining))
+      (nil? a2)
+      a1
+      proc
       (recur
        op
        (cons (apply proc (map contents operands))
              remaining))
-      proc
-      (apply proc (map contents operands))
       (not (nil? a2))
       (let [t1->t2 (get-coercion type1 type2)
             t2->t1 (get-coercion type2 type1)]
