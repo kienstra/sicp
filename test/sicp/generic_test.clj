@@ -2,6 +2,7 @@
   (:require [clojure.test :refer [deftest is testing]]
             [sicp.generic :refer [add
                                   div
+                                  equ?
                                   install-complex-package!
                                   install-rational-package!
                                   install-scheme-number-package!
@@ -27,6 +28,8 @@
     (is (= 5 (sub (make-scheme-number 8) (make-scheme-number 3))))
     (is (= 24 (mul (make-scheme-number 8) (make-scheme-number 3))))
     (is (= 4 (div (make-scheme-number 12) (make-scheme-number 3))))
+    (is (= false (equ? (make-scheme-number 8) 9)))
+    (is (= true (equ? (make-scheme-number 0) 0)))
     (is (= false (=zero? (make-scheme-number 8))))
     (is (= true (=zero? (make-scheme-number 0)))))
 
