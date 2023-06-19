@@ -186,23 +186,21 @@
              remaining))
       proc
       (apply proc (map contents operands))
-      (not (nil? a2))
+      (= type1 type2)
+      {:error (str "No method for these same types"
+                   type1
+                   type2)}
+      :else
       (let [t1->t2 (get-coercion type1 type2)
             t2->t1 (get-coercion type2 type1)]
         (cond
-          (= type1 type2)
-          {:error (str "No method for these same types"
-                       type1
-                       type2)}
           t1->t2
           (recur op (cons (t1->t2 a1) (cons a2 remaining)))
           t2->t1
           (recur op (cons a1 (cons (t2->t1 a2) remaining)))
           :else
           {:error (str "No method for these types"
-                       (list op type-tags))}))
-      :else {:error (str "No method for these types"
-                         (list op type-tags))})))
+                       (list op type-tags))})))))
 
 (defn add [& args]
   (apply-generic-coerce 'add args))
