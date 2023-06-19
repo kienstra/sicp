@@ -12,7 +12,8 @@
                                   put-coercion!
                                   rational->scheme-number
                                   scheme-number->complex
-                                  sub]]))
+                                  sub
+                                  =zero?]]))
 
 (deftest generic-test
   (install-complex-package!)
@@ -25,7 +26,9 @@
     (is (= 11 (add (make-scheme-number 8) (make-scheme-number 3))))
     (is (= 5 (sub (make-scheme-number 8) (make-scheme-number 3))))
     (is (= 24 (mul (make-scheme-number 8) (make-scheme-number 3))))
-    (is (= 4 (div (make-scheme-number 12) (make-scheme-number 3)))))
+    (is (= 4 (div (make-scheme-number 12) (make-scheme-number 3))))
+    (is (= false (=zero? (make-scheme-number 8))))
+    (is (= true (=zero? (make-scheme-number 0)))))
 
   (testing "Multiple scheme numbers"
     (is (= 14 (add 9 3 2)))
