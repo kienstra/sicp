@@ -12,13 +12,13 @@
 (defn pair? [tree]
   (and (list? tree) (= 2 (count tree))))
 (defn attach-tag [type-tag contents]
-  (if (number? contents)
+  (if (int? contents)
     contents
     (list type-tag contents)))
 (defn type-tag [datum]
   (cond
-    (number? datum)
-    'scheme-number
+    (int? datum)
+    'integer
     :else (first datum)))
 (defn contents [datum]
   (cond
@@ -35,29 +35,28 @@
       {:error
        (str "No method for these types -- APPLY-GENERIC"
             (list op type-tags))})))
-(defn install-scheme-number-package! []
-  (put-operation! 'add '(scheme-number scheme-number) +)
-  (put-operation! 'sub '(scheme-number scheme-number)
+(defn install-integer-package! []
+  (put-operation! 'add '(integer integer) +)
+  (put-operation! 'sub '(integer integer)
                   (fn [x y] (- x y)))
-  (put-operation! 'mul '(scheme-number scheme-number)
+  (put-operation! 'mul '(integer integer)
                   (fn [x y] (* x y)))
-  (put-operation! 'div '(scheme-number scheme-number)
+  (put-operation! 'div '(integer integer)
                   (fn [x y] (/ x y)))
-  (put-operation! 'equ? '(scheme-number scheme-number)
+  (put-operation! 'equ? '(integer integer)
                   (fn [x y] (= x y)))
-  (put-operation! '=zero? '(scheme-number) zero?)
-  (put-operation! 'make 'scheme-number identity)
+  (put-operation! '=zero? '(integer) zero?)
+  (put-operation! 'make 'integer identity)
   'done)
 
-(defn make-scheme-number [n]
-  ((get-operation 'make 'scheme-number) n))
-
-(defn numer [x] (first x))
+(defn make-integer [n]
+  ((get-operation 'make 'integer) n))
 
 (defn gcd [a b]
   (if (= b 0)
     a
     (gcd b (mod a b))))
+(defn numer [x] (first x))
 (defn denom [x] (second x))
 (defn make-rat [n d]
   (let [g (gcd n d)]
@@ -103,6 +102,25 @@
   'done)
 (defn make-rational [n d]
   ((get-operation 'make 'rational) n d))
+
+(defn tag-real [x] (attach-tag 'real x))
+(defn install-real-package! []
+  (put-operation! 'add '(real real)
+                  (fn [x y] (tag-real (+ x y))))
+  (put-operation! 'sub '(real real)
+                  (fn [x y] (tag-real (- x y))))
+  (put-operation! 'mul '(real real)
+                  (fn [x y] (tag-real (* x y))))
+  (put-operation! 'div '(real real)
+                  (fn [x y] (tag-real (/ x y))))
+  (put-operation! 'equ? '(real real)
+                  (fn [x y] (tag-real (= x y))))
+  (put-operation! '=zero? '(real) =)
+  (put-operation! 'make 'real
+                  (fn [n] (tag-real n)))
+  'done)
+(defn make-real [n]
+  ((get-operation 'make 'real) n))
 
 (defn make-complex-from-real-imag [x y]
   ((get-operation 'make-from-real-imag 'complex) x y))
@@ -156,6 +174,29 @@
                   (fn [r a] (tag-complex (make-complex-from-mag-ang-polar r a))))
   'done)
 
+(defn raise-next [n from to]
+  (cond
+    (and (= from 'integer) (= to 'rational))
+    (make-rational (contents n) 1)
+    (and (= from 'rational) (= to 'real))
+    (make-real (double (/ (numer (contents n)) (denom (contents n)))))
+    (and (= from 'real) (= to 'complex))
+    (make-complex-from-real-imag (contents n) 0)
+    :else {:error (println "Did not find a match from % to %" from to)}))
+
+(defn raise [n to]
+  (let [from (type-tag n)
+        possible-raise {'integer 'rational
+                        'rational 'real
+                        'real 'complex}
+        next-level (get possible-raise from nil)]
+    (cond
+      (= next-level to)
+      (raise-next n from to)
+      next-level
+      (recur (raise-next n from next-level) to)
+      :else {:error (format "Cannot raise from %s to %s, from was %s" from to from)})))
+
 (def coercion-table (ref {}))
 (defn get-coercion [op type]
   (get (get (deref coercion-table) op {}) type))
@@ -166,10 +207,10 @@
                                  {type1 (into (get previous-table type1 {})
                                               {type2 coercion})})))))
 
-(defn scheme-number->complex [n]
+(defn integer->complex [n]
   (make-complex-from-real-imag (contents n) 0))
-(defn rational->scheme-number [n]
-  (apply / (contents n)))
+(defn rational->real [n]
+  (make-real (double (/ (numer (contents n)) (denom (contents n))))))
 
 (defn apply-generic-coerce [op args]
   (let [operands (take 2 args)
@@ -199,8 +240,8 @@
           t2->t1
           (recur op (cons a1 (cons (t2->t1 a2) remaining)))
           :else
-          {:error (str "No method for these types"
-                       (list op type-tags))})))))
+          {:error (format "No method for the op %s and types %s and %s"
+                          op type1 type2)})))))
 
 (defn add [& args]
   (apply-generic-coerce 'add args))

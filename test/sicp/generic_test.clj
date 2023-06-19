@@ -5,33 +5,39 @@
                                   equ?
                                   install-complex-package!
                                   install-rational-package!
-                                  install-scheme-number-package!
+                                  install-real-package!
+                                  install-integer-package!
                                   make-complex-from-real-imag
+                                  make-integer
                                   make-rational
-                                  make-scheme-number
+                                  make-real
+                                  make-integer
                                   mul
                                   put-coercion!
-                                  rational->scheme-number
-                                  scheme-number->complex
+                                  raise
+                                  raise-next
+                                  rational->real
+                                  integer->complex
                                   sub
                                   =zero?]]))
 
 (deftest generic-test
   (install-complex-package!)
   (install-rational-package!)
-  (install-scheme-number-package!)
+  (install-real-package!)
+  (install-integer-package!)
 
   (testing "Scheme numbers"
     (is (= 11 (add 8 3)))
     (is (= 5 (sub 8 3)))
-    (is (= 11 (add (make-scheme-number 8) (make-scheme-number 3))))
-    (is (= 5 (sub (make-scheme-number 8) (make-scheme-number 3))))
-    (is (= 24 (mul (make-scheme-number 8) (make-scheme-number 3))))
-    (is (= 4 (div (make-scheme-number 12) (make-scheme-number 3))))
-    (is (= false (equ? (make-scheme-number 8) 9)))
-    (is (= true (equ? (make-scheme-number 0) 0)))
-    (is (= false (=zero? (make-scheme-number 8))))
-    (is (= true (=zero? (make-scheme-number 0)))))
+    (is (= 11 (add (make-integer 8) (make-integer 3))))
+    (is (= 5 (sub (make-integer 8) (make-integer 3))))
+    (is (= 24 (mul (make-integer 8) (make-integer 3))))
+    (is (= 4 (div (make-integer 12) (make-integer 3))))
+    (is (= false (equ? (make-integer 8) 9)))
+    (is (= true (equ? (make-integer 0) 0)))
+    (is (= false (=zero? (make-integer 8))))
+    (is (= true (=zero? (make-integer 0)))))
 
   (testing "Multiple scheme numbers"
     (is (= 14 (add 9 3 2)))
@@ -63,18 +69,24 @@
     (is (= '(complex (3.596498602883739 1.892546881191539)) (mul (make-complex-from-real-imag 1 1) (make-complex-from-real-imag 1 1) (make-complex-from-real-imag 1 1)))))
 
   (testing "Coercion"
-    (put-coercion! 'scheme-number 'complex scheme-number->complex)
-    (put-coercion! 'rational 'scheme-number rational->scheme-number)
+    (put-coercion! 'integer 'complex integer->complex)
+    (put-coercion! 'rational 'real rational->real)
 
     (is (= '(complex (40 0)) (add 39 (make-complex-from-real-imag 1 0))))
     (is (= '(complex (40 0)) (add (make-complex-from-real-imag 1 0) 39)))
-    (is (= 81/2 (add (make-rational 3 2) 39))))
+    (is (= '(real 40.5) (add (make-rational 3 2) (make-real 39.0)))))
 
   (testing "Coercion of multiple numbers"
-    (put-coercion! 'scheme-number 'complex scheme-number->complex)
-    (put-coercion! 'rational 'scheme-number rational->scheme-number)
+    (put-coercion! 'integer 'complex integer->complex)
+    (put-coercion! 'rational 'real rational->real)
 
     (is (= '(complex (42 0)) (add 39 (make-complex-from-real-imag 1 0) (make-complex-from-real-imag 2 0))))
     (is (= '(complex (47 0)) (add (make-complex-from-real-imag 1 0) 3 (make-complex-from-real-imag 39 0) (make-complex-from-real-imag 4 0))))
     (is (= '(complex (41 0)) (add 39 1 (make-complex-from-real-imag 1 0))))
-    (is (= 43 (add (make-rational 3 2) (make-rational 5 2) 39)))))
+    (is (= '(real 43.0) (add (make-rational 3 2) (make-rational 5 2) (make-real 39.0)))))
+
+  (testing "Raise"
+    (is (= '(rational (30 1)) (raise-next 30 'integer 'rational)))
+    (is (= '(real 30.0) (raise-next '(rational (30 1)) 'rational 'real)))
+    (is (= '(complex (30.0 0)) (raise-next 30.0 'real 'complex)))
+    (is (= '(complex (30.0 0)) (raise (make-integer 30) 'complex)))))
