@@ -180,7 +180,7 @@
         [type1 type2] type-tags]
     (cond
       (and proc (seq remaining))
-      (apply-generic-coerce
+      (recur
        op
        (cons (apply proc (map contents operands))
              remaining))
@@ -195,9 +195,9 @@
                        type1
                        type2)}
           t1->t2
-          (apply-generic-coerce op (cons (t1->t2 a1) (cons a2 remaining)))
+          (recur op (cons (t1->t2 a1) (cons a2 remaining)))
           t2->t1
-          (apply-generic-coerce op (cons a1 (cons (t2->t1 a2) remaining)))
+          (recur op (cons a1 (cons (t2->t1 a2) remaining)))
           :else
           {:error (str "No method for these types"
                        (list op type-tags))}))
