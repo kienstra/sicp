@@ -17,11 +17,9 @@
     (list type-tag contents)))
 (defn type-tag [datum]
   (cond
-    (pair? datum)
-    (first datum)
     (number? datum)
     'scheme-number
-    :else {:error (str "Bad tagged datum -- TYPE-TAG" datum)}))
+    :else (first datum)))
 (defn contents [datum]
   (cond
     (pair? datum)
@@ -179,20 +177,19 @@
     (nil? (next arglist)) (seq (first arglist))
     :else (cons (first arglist) (spread (next arglist)))))
 
-(defn apply-generic-coerce [op & args]
+(defn apply-generic-coerce [op args]
   (let [operands (take 2 args)
-        remaining (nth args 2 nil)
+        remaining (drop 2 args)
         [a1 a2] operands
         type-tags (map type-tag operands)
         proc (get-operation op type-tags)
         [type1 type2] type-tags]
     (cond
-      (and proc remaining)
-      (apply
-       apply-generic-coerce
+      (and proc (seq remaining))
+      (apply-generic-coerce
        op
-       (apply proc (map contents operands))
-       remaining)
+       (cons (apply proc (map contents operands))
+               remaining))
       proc
       (apply proc (map contents operands))
       (not (nil? a2))
@@ -204,21 +201,19 @@
                        type1
                        type2)}
           t1->t2
-          (apply-generic-coerce op (t1->t2 a1) a2)
+          (apply-generic-coerce op (list (t1->t2 a1) a2))
           t2->t1
-          (apply-generic-coerce op a1 (t2->t1 a2))
+          (apply-generic-coerce op (list a1 (t2->t1 a2)))
           :else
           {:error (str "No method for these types"
                        (list op type-tags))}))
       :else {:error (str "No method for these types"
                          (list op type-tags))})))
 
-(defn add [x y & remaining]
-  (if (nil? remaining)
-    (apply-generic-coerce 'add x y)
-    (apply-generic-coerce 'add x y remaining)))
-(defn sub [x y] (apply-generic-coerce 'sub x y))
-(defn mul [x y] (apply-generic-coerce 'mul x y))
-(defn div [x y] (apply-generic-coerce 'div x y))
-(defn equ? [x y] (apply-generic-coerce 'equ? x y))
-(defn =zero? [x] (apply-generic-coerce '=zero? x))
+(defn add [& args]
+  (apply-generic-coerce 'add args))
+(defn sub [x y] (apply-generic-coerce 'sub (list x y)))
+(defn mul [x y] (apply-generic-coerce 'mul (list x y)))
+(defn div [x y] (apply-generic-coerce 'div (list x y)))
+(defn equ? [x y] (apply-generic-coerce 'equ? (list x y)))
+(defn =zero? [x] (apply-generic-coerce '=zero? (list x)))
