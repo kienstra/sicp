@@ -186,7 +186,7 @@
        op
        (cons (apply proc (map contents operands))
              remaining))
-      :else
+      (not (nil? a2))
       (let [t1->t2 (get-coercion type1 type2)
             t2->t1 (get-coercion type2 type1)]
         (cond
@@ -200,7 +200,9 @@
           (recur op (cons a1 (cons (t2->t1 a2) remaining)))
           :else
           {:error (str "No method for these types"
-                       (list op type-tags))})))))
+                       (list op type-tags))}))
+      :else {:error (str "No method for these types"
+                         (list op type-tags))})))
 
 (defn add [& args]
   (apply-generic-coerce 'add args))
