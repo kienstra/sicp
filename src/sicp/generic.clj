@@ -169,14 +169,6 @@
 (defn scheme-number->complex [n]
   (make-complex-from-real-imag (contents n) 0))
 
-(defn spread
-  "Forked from Clojure core: https://github.com/clojure/clojure/blob/38bafca9e76cd6625d8dce5fb6d16b87845c8b9d/src/clj/clojure/core.clj#LL639C1-L646C58"
-  [arglist]
-  (cond
-    (nil? arglist) nil
-    (nil? (next arglist)) (seq (first arglist))
-    :else (cons (first arglist) (spread (next arglist)))))
-
 (defn apply-generic-coerce [op args]
   (let [operands (take 2 args)
         remaining (drop 2 args)
@@ -212,8 +204,8 @@
 
 (defn add [& args]
   (apply-generic-coerce 'add args))
-(defn sub [x y] (apply-generic-coerce 'sub (list x y)))
-(defn mul [x y] (apply-generic-coerce 'mul (list x y)))
-(defn div [x y] (apply-generic-coerce 'div (list x y)))
-(defn equ? [x y] (apply-generic-coerce 'equ? (list x y)))
-(defn =zero? [x] (apply-generic-coerce '=zero? (list x)))
+(defn sub [& args] (apply-generic-coerce 'sub args))
+(defn mul [& args] (apply-generic-coerce 'mul args))
+(defn div [& args] (apply-generic-coerce 'div args))
+(defn equ? [& args ] (apply-generic-coerce 'equ? args))
+(defn =zero? [& args] (apply-generic-coerce '=zero? args))

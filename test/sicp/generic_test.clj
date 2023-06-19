@@ -19,13 +19,12 @@
   (install-scheme-number-package!)
 
   (testing "Scheme numbers"
+    (is (= 11 (add 8 3)))
+    (is (= 5 (sub 8 3)))
     (is (= 11 (add (make-scheme-number 8) (make-scheme-number 3))))
     (is (= 5 (sub (make-scheme-number 8) (make-scheme-number 3))))
     (is (= 24 (mul (make-scheme-number 8) (make-scheme-number 3))))
     (is (= 4 (div (make-scheme-number 12) (make-scheme-number 3)))))
-
-  (testing "Multiple numbers"
-    (is (= 16 (add 9 3 4))))
 
   (testing "Rational numbers"
     (is (= '(rational (8 3)) (add (make-rational 4 3) (make-rational 4 3))))
@@ -42,4 +41,10 @@
   (testing "Coercion"
     (put-coercion! 'scheme-number 'complex scheme-number->complex)
     (is (= '(complex (40 0)) (add 39 (make-complex-from-real-imag 1 0))))
-    (is (= '(complex (40 0)) (add (make-complex-from-real-imag 1 0) 39)))))
+    (is (= '(complex (40 0)) (add (make-complex-from-real-imag 1 0) 39))))
+
+  (testing "Multiple numbers"
+    (is (= 14 (add 9 3 2)))
+    (is (= 4 (sub 9 3 2)))
+    (is (= 54 (mul 9 3 2)))
+    (is (= 5 (div 30 3 2)))))
