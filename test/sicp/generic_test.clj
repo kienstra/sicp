@@ -7,6 +7,8 @@
                                   install-rational-package!
                                   install-real-package!
                                   install-integer-package!
+                                  drop-next
+                                  drop-num
                                   make-complex-from-real-imag
                                   make-integer
                                   make-rational
@@ -81,4 +83,11 @@
     (is (= '(complex (30.0 0)) (raise (make-real 30.0) 'complex)))
     (is (= '(complex (30.0 0)) (raise 30 'complex)))
     (is (= '(complex (30.0 0)) (raise '(rational (30 1)) 'complex)))
-    (is (= '(complex (30.0 0)) (raise (make-complex-from-real-imag 30.0 0) 'complex)))))
+    (is (= '(complex (30.0 0)) (raise (make-complex-from-real-imag 30.0 0) 'complex))))
+
+  (testing "Drop"
+    (is (= '(real 30.0) (drop-next (make-complex-from-real-imag 30.0 0))))
+    (is (= '(rational (15 2)) (drop-next (make-real 7.5))))
+    (is (= 7 (drop-next (make-rational 7 1))))
+    (is (= 7 (drop-num (make-complex-from-real-imag 7 0))))
+    (is (= '(complex (7.0 0)) (raise (drop-num (make-complex-from-real-imag 7.0 0)) 'complex)))))

@@ -167,6 +167,36 @@
                   (fn [r a] (tag-complex (make-complex-from-mag-ang-polar r a))))
   'done)
 
+(defn error? [e]
+  (boolean (get e :error nil)))
+(defn drop-next [x]
+  (let [cont (contents x)
+        type (type-tag x)]
+    (cond
+      (= type 'complex)
+      (make-real (real-part cont))
+      (= type 'real)
+      (cond
+        (int? cont)
+        (make-rational cont 1)
+        (zero? (- cont (Math/floor cont)))
+        (make-rational (int cont) 1)
+        :else
+        (make-rational (numerator (rationalize cont)) (denominator (rationalize cont))))
+      (= type 'rational)
+      (if (= 1 (denom cont))
+        (make-integer (numer cont))
+        {:error (format "Could not lower rational number %1$s to int" cont)})
+      :else {:error (format "Could not lower number %1$s of type %2$s"
+                            cont type)})))
+
+(defn drop-num [n]
+  (let [next-lower (drop-next n)]
+    (if
+     (error? next-lower)
+      n
+      (recur next-lower))))
+
 (defn raise-next [n from]
   (cond
     (= from 'integer)
@@ -177,8 +207,6 @@
     (make-complex-from-real-imag n 0)
     :else {:error (format "Could not raise %1$s from %2$s"
                           n from)}))
-(defn error? [e]
-  (boolean (get e :error nil)))
 
 (defn raise [n to]
   (let [from (type-tag n)]
