@@ -170,11 +170,11 @@
 (defn raise-next [n from]
   (cond
     (= from 'integer)
-    (make-rational (contents n) 1)
+    (make-rational n 1)
     (= from 'rational)
-    (make-real (double (/ (numer (contents n)) (denom (contents n)))))
+    (make-real (double (/ (numer n) (denom n))))
     (= from 'real)
-    (make-complex-from-real-imag (contents n) 0)
+    (make-complex-from-real-imag n 0)
     :else {:error (format "Could not raise %1$s from %2$s"
                           n from)}))
 (defn error? [e]
@@ -185,7 +185,7 @@
     (if
      (or (= from to) (error? n))
       n
-      (recur (raise-next n from) to))))
+      (recur (raise-next (contents n) from) to))))
 
 (defn apply-generic-coerce [op args]
   (let [operands (take 2 args)
