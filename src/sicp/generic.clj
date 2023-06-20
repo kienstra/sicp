@@ -27,14 +27,7 @@
     (number? datum)
     datum
     :else {:error (str "Bad datum -- TYPE-TAG" datum)}))
-(defn apply-generic-naive [op & args]
-  (let [type-tags (map type-tag args)
-        proc (get-operation op type-tags)]
-    (if proc
-      (apply proc (map contents args))
-      {:error
-       (str "No method for these types -- APPLY-GENERIC"
-            (list op type-tags))})))
+
 (defn install-integer-package! []
   (put-operation! 'add '(integer integer) +)
   (put-operation! 'sub '(integer integer)
@@ -184,28 +177,15 @@
     (make-complex-from-real-imag (contents n) 0)
     :else {:error (format "Could not raise %1$s from %2$s"
                           n from)}))
+(defn error? [e]
+  (boolean (get e :error nil)))
 
 (defn raise [n to]
   (let [from (type-tag n)]
     (if
-     (= from to)
+     (or (= from to) (error? n))
       n
       (recur (raise-next n from) to))))
-
-(def coercion-table (ref {}))
-(defn get-coercion [op type]
-  (get (get (deref coercion-table) op {}) type))
-(defn put-coercion! [type1 type2 coercion]
-  (dosync
-   (alter coercion-table (fn [previous-table]
-                           (into previous-table
-                                 {type1 (into (get previous-table type1 {})
-                                              {type2 coercion})})))))
-
-(defn integer->complex [n]
-  (make-complex-from-real-imag (contents n) 0))
-(defn rational->real [n]
-  (make-real (double (/ (numer (contents n)) (denom (contents n))))))
 
 (defn apply-generic-coerce [op args]
   (let [operands (take 2 args)
@@ -223,17 +203,17 @@
       proc
       (apply proc (map contents operands))
       (= type1 type2)
-      {:error (str "No method for these same types"
+      {:error (format "No method for the same types %1$s and %2$s"
                    type1
                    type2)}
       :else
-      (let [t1->t2 (get-coercion type1 type2)
-            t2->t1 (get-coercion type2 type1)]
+      (let [raised-a1 (raise a1 type2)
+            raised-a2 (raise a2 type1)]
         (cond
-          t1->t2
-          (recur op (cons (t1->t2 a1) (cons a2 remaining)))
-          t2->t1
-          (recur op (cons a1 (cons (t2->t1 a2) remaining)))
+          (not (error? raised-a1))
+          (recur op (cons raised-a1 (cons a2 remaining)))
+          (not (error? raised-a2))
+          (recur op (cons a1 (cons raised-a2 remaining)))
           :else
           {:error (format "No method for the op %1$s and types %2$s and %3$s"
                           op type1 type2)})))))

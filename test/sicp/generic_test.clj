@@ -13,11 +13,7 @@
                                   make-real
                                   make-integer
                                   mul
-                                  put-coercion!
                                   raise
-                                  raise-next
-                                  rational->real
-                                  integer->complex
                                   sub
                                   =zero?]]))
 
@@ -69,24 +65,18 @@
     (is (= '(complex (3.596498602883739 1.892546881191539)) (mul (make-complex-from-real-imag 1 1) (make-complex-from-real-imag 1 1) (make-complex-from-real-imag 1 1)))))
 
   (testing "Coercion"
-    (put-coercion! 'integer 'complex integer->complex)
-    (put-coercion! 'rational 'real rational->real)
-
-    (is (= '(complex (40 0)) (add 39 (make-complex-from-real-imag 1 0))))
-    (is (= '(complex (40 0)) (add (make-complex-from-real-imag 1 0) 39)))
+    (is (= '(complex (40.0 0)) (add 39 (make-complex-from-real-imag 1 0))))
+    (is (= '(complex (40.0 0)) (add (make-complex-from-real-imag 1 0) 39)))
     (is (= '(real 40.5) (add (make-rational 3 2) (make-real 39.0)))))
 
   (testing "Coercion of multiple numbers"
-    (put-coercion! 'integer 'complex integer->complex)
-    (put-coercion! 'rational 'real rational->real)
-
-    (is (= '(complex (42 0)) (add 39 (make-complex-from-real-imag 1 0) (make-complex-from-real-imag 2 0))))
-    (is (= '(complex (47 0)) (add (make-complex-from-real-imag 1 0) 3 (make-complex-from-real-imag 39 0) (make-complex-from-real-imag 4 0))))
-    (is (= '(complex (41 0)) (add 39 1 (make-complex-from-real-imag 1 0))))
+    (is (= '(complex (42.0 0)) (add 39 (make-complex-from-real-imag 1 0) (make-complex-from-real-imag 2 0))))
+    (is (= '(complex (47.0 0)) (add (make-complex-from-real-imag 1 0) 3 (make-complex-from-real-imag 39 0) (make-complex-from-real-imag 4 0))))
+    (is (= '(complex (41.0 0)) (add 39 1 (make-complex-from-real-imag 1 0))))
     (is (= '(real 43.0) (add (make-rational 3 2) (make-rational 5 2) (make-real 39.0)))))
 
   (testing "Raise"
-    (is (= '(rational (30 1)) (raise-next 30 'integer)))
-    (is (= '(real 30.0) (raise-next '(rational (30 1)) 'rational)))
-    (is (= '(complex (30.0 0)) (raise-next 30.0 'real)))
+    (is (= '(rational (30 1)) (raise 30 'rational)))
+    (is (= '(real 30.0) (raise '(rational (30 1)) 'real)))
+    (is (= '(complex (30.0 0)) (raise (make-real 30.0) 'complex)))
     (is (= '(complex (30.0 0)) (raise (make-integer 30) 'complex)))))
