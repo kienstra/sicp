@@ -79,4 +79,6 @@
     (is (= '(rational (30 1)) (raise 30 'rational)))
     (is (= '(real 30.0) (raise '(rational (30 1)) 'real)))
     (is (= '(complex (30.0 0)) (raise (make-real 30.0) 'complex)))
-    (is (= '(complex (30.0 0)) (raise (make-integer 30) 'complex)))))
+    (is (= '(complex (30.0 0)) (raise 30 'complex)))
+    (is (= '(complex (30.0 0)) (raise '(rational (30 1)) 'complex)))
+    (is (= '(complex (30.0 0)) (raise (make-complex-from-real-imag 30.0 0) 'complex)))))

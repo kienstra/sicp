@@ -204,8 +204,8 @@
       (apply proc (map contents operands))
       (= type1 type2)
       {:error (format "No method for the same types %1$s and %2$s"
-                   type1
-                   type2)}
+                      type1
+                      type2)}
       :else
       (let [raised-a1 (raise a1 type2)
             raised-a2 (raise a2 type1)]
