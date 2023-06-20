@@ -1,11 +1,5 @@
 (ns sicp.core
-  (:require [sicp.generic :refer [install-scheme-number-package!
-                                  install-complex-package!
-                                  install-rational-package!
-                                  make-scheme-number]]))
+  (:require [sicp.generic :refer [install-rational-package!]]))
 
 (defn -main []
-  (install-scheme-number-package!)
-  (install-complex-package!)
-  (install-rational-package!)
-  (println (make-scheme-number 4)))
+  (install-rational-package!))

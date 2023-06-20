@@ -12,9 +12,7 @@
 (defn pair? [tree]
   (and (list? tree) (= 2 (count tree))))
 (defn attach-tag [type-tag contents]
-  (if (int? contents)
-    contents
-    (list type-tag contents)))
+  (list type-tag contents))
 (defn type-tag [datum]
   (cond
     (int? datum)
@@ -107,7 +105,7 @@
   (put-operation! 'div '(real real)
                   (fn [x y] (tag-real (/ x y))))
   (put-operation! 'equ? '(real real)
-                  (fn [x y] (tag-real (= x y))))
+                  (fn [x y] (= x y)))
   (put-operation! '=zero? '(real) =)
   (put-operation! 'make 'real
                   (fn [n] (tag-real n)))
@@ -169,6 +167,25 @@
 
 (defn error? [e]
   (boolean (get e :error nil)))
+
+(defn raise-next [n from]
+  (cond
+    (= from 'integer)
+    (make-rational n 1)
+    (= from 'rational)
+    (make-real (double (/ (numer n) (denom n))))
+    (= from 'real)
+    (make-complex-from-real-imag n 0)
+    :else {:error (format "Could not raise %1$s from %2$s"
+                          n from)}))
+
+(defn raise [n to]
+  (let [from (type-tag n)]
+    (if
+     (or (= from to) (error? n))
+      n
+      (recur (raise-next (contents n) from) to))))
+
 (defn drop-next [x]
   (let [cont (contents x)
         type (type-tag x)]
@@ -190,30 +207,14 @@
       :else {:error (format "Could not lower number %1$s of type %2$s"
                             cont type)})))
 
-(defn drop-num [n]
+(defn drop-num [n to equ]
   (let [next-lower (drop-next n)]
-    (if
-     (error? next-lower)
+    (cond
+      (= to (type-tag n))
       n
-      (recur next-lower))))
-
-(defn raise-next [n from]
-  (cond
-    (= from 'integer)
-    (make-rational n 1)
-    (= from 'rational)
-    (make-real (double (/ (numer n) (denom n))))
-    (= from 'real)
-    (make-complex-from-real-imag n 0)
-    :else {:error (format "Could not raise %1$s from %2$s"
-                          n from)}))
-
-(defn raise [n to]
-  (let [from (type-tag n)]
-    (if
-     (or (= from to) (error? n))
-      n
-      (recur (raise-next (contents n) from) to))))
+      (error? next-lower)
+      next-lower
+      :else (recur next-lower to equ))))
 
 (defn apply-generic-coerce [op args]
   (let [operands (take 2 args)
@@ -235,21 +236,19 @@
                       type1
                       type2)}
       :else
-      (let [raised-a1 (raise a1 type2)
-            raised-a2 (raise a2 type1)]
+      (let [dropped-a1 (drop-num a1 type2 #(apply-generic-coerce 'equ? (list %1 %2)))
+            dropped-a2 (drop-num a2 type1 #(apply-generic-coerce 'equ? (list %1 %2)))]
         (cond
-          (not (error? raised-a1))
-          (recur op (cons raised-a1 (cons a2 remaining)))
-          (not (error? raised-a2))
-          (recur op (cons a1 (cons raised-a2 remaining)))
+          (not (error? dropped-a1))
+          (recur op (cons dropped-a1 (cons a2 remaining)))
+          (not (error? dropped-a2))
+          (recur op (cons a1 (cons dropped-a2 remaining)))
           :else
           {:error (format "No method for the op %1$s and types %2$s and %3$s"
                           op type1 type2)})))))
-
-(defn add [& args]
-  (apply-generic-coerce 'add args))
-(defn sub [& args] (apply-generic-coerce 'sub args))
-(defn mul [& args] (apply-generic-coerce 'mul args))
-(defn div [& args] (apply-generic-coerce 'div args))
-(defn equ? [& args] (apply-generic-coerce 'equ? args))
-(defn =zero? [& args] (apply-generic-coerce '=zero? args))
+(def add #(apply-generic-coerce 'add %&))
+(def sub #(apply-generic-coerce 'sub %&))
+(def mul #(apply-generic-coerce 'mul %&))
+(def div #(apply-generic-coerce 'div %&))
+(def equ? #(apply-generic-coerce 'equ? %&))
+(def =zero? #(apply-generic-coerce '=zero? %&))

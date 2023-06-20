@@ -67,15 +67,15 @@
     (is (= '(complex (3.596498602883739 1.892546881191539)) (mul (make-complex-from-real-imag 1 1) (make-complex-from-real-imag 1 1) (make-complex-from-real-imag 1 1)))))
 
   (testing "Coercion"
-    (is (= '(complex (40.0 0)) (add 39 (make-complex-from-real-imag 1 0))))
-    (is (= '(complex (40.0 0)) (add (make-complex-from-real-imag 1 0) 39)))
-    (is (= '(real 40.5) (add (make-rational 3 2) (make-real 39.0)))))
+    (is (= 40 (add 39 (make-complex-from-real-imag 1 0))))
+    (is (= 40 (add (make-complex-from-real-imag 1 0) 39)))
+    (is (= '(rational (81 2)) (add (make-rational 3 2) (make-real 39.0)))))
 
   (testing "Coercion of multiple numbers"
-    (is (= '(complex (42.0 0)) (add 39 (make-complex-from-real-imag 1 0) (make-complex-from-real-imag 2 0))))
-    (is (= '(complex (47.0 0)) (add (make-complex-from-real-imag 1 0) 3 (make-complex-from-real-imag 39 0) (make-complex-from-real-imag 4 0))))
-    (is (= '(complex (41.0 0)) (add 39 1 (make-complex-from-real-imag 1 0))))
-    (is (= '(real 43.0) (add (make-rational 3 2) (make-rational 5 2) (make-real 39.0)))))
+    (is (= 42 (add 39 (make-complex-from-real-imag 1 0) (make-complex-from-real-imag 2 0))))
+    (is (= 47 (add (make-complex-from-real-imag 1 0) 3 (make-complex-from-real-imag 39 0) (make-complex-from-real-imag 4 0))))
+    (is (= 41 (add 39 1 (make-complex-from-real-imag 1 0))))
+    (is (= '(rational (43 1)) (add (make-rational 3 2) (make-rational 5 2) (make-real 39.0)))))
 
   (testing "Raise"
     (is (= '(rational (30 1)) (raise 30 'rational)))
@@ -85,9 +85,17 @@
     (is (= '(complex (30.0 0)) (raise '(rational (30 1)) 'complex)))
     (is (= '(complex (30.0 0)) (raise (make-complex-from-real-imag 30.0 0) 'complex))))
 
-  (testing "Drop"
+  (testing "Drop next"
     (is (= '(real 30.0) (drop-next (make-complex-from-real-imag 30.0 0))))
     (is (= '(rational (15 2)) (drop-next (make-real 7.5))))
-    (is (= 7 (drop-next (make-rational 7 1))))
-    (is (= 7 (drop-num (make-complex-from-real-imag 7 0))))
-    (is (= '(complex (7.0 0)) (raise (drop-num (make-complex-from-real-imag 7.0 0)) 'complex)))))
+    (is (= 7 (drop-next (make-rational 7 1)))))
+
+  (testing "Drop num a single level"
+    (is (= '(real 7.0) (drop-num (make-complex-from-real-imag 7.0 0) 'real equ?)))
+    (is (= '(rational (7 1)) (drop-num (make-real 7.0) 'rational equ?)))
+    (is (= 7 (drop-num (make-rational 7 1) 'integer equ?))))
+
+  (testing "Drop multiple levels"
+    (is (= '(rational (7 1)) (drop-num (make-complex-from-real-imag 7.0 0) 'rational equ?)))
+    (is (= 7 (drop-num (make-complex-from-real-imag 7.0 0) 'integer equ?)))
+    (is (= '(real 1) (drop-num (make-complex-from-real-imag 1 0) 'real equ?)))))
