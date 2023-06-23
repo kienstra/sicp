@@ -8,10 +8,10 @@
     (cond
       (= x y)
       accum
-      (or
-       (= order-x order-y)
-       (and (= 0 order-y) (= 0 x)))
-      (int (+ accum (- y x (Math/pow 10 order-y))))
+      (= order-x order-y)
+      (int (+ accum (* digits-order-y (- y x))))
+      (and (zero? order-y) (zero? x))
+      (int (+ accum (- y x)))
       :else (recur
              x
              (- y amount-order-y)
