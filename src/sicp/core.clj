@@ -1,5 +1,5 @@
 (ns sicp.core
-  (:require [sicp.generic :refer [install-rational-package!]]))
+  (:require [sicp.digits :refer [digits]]))
 
 (defn -main []
-  (install-rational-package!))
+  (println "Running"))
