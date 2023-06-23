@@ -7,7 +7,7 @@
 (defn same-variable? [v1 v2]
   (and (variable? v1) (variable? v2) (= v1 v2)))
 (defn make-poly [variable term-list]
-    (cons variable term-list))
+  (cons variable term-list))
 (defn variable [p] (first p))
 (defn term-list [p] (rest p))
 (defn add-poly [p1 p2] (+ p1 p2)) ;; TODO

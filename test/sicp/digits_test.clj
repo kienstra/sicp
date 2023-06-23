@@ -3,10 +3,13 @@
             [sicp.digits :refer [digits]]))
 
 (deftest digits-test
-
   (testing "Digits"
     (is (= 0 (digits 0 1)))
     (is (= 0 (digits 3 4)))
     (is (= 1 (digits 0 2)))
     (is (= 9 (digits 0 10)))
-    (is (= 179 (digits 9 100)))))
+    (is (= 189 (digits 0 100)))
+    (is (= 179 (digits 9 100)))
+    (is (= 2889 (digits 0 1000)))
+    (is (= 6969 (digits 0 2020)))
+    (is (= 38889 (digits 0 10000)))))
