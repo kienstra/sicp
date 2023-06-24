@@ -90,9 +90,9 @@
 
 (defn install-polynomial-package! []
   (put-operation! 'add '(polynomial polynomial)
-                  (fn [p1 p2] (tag-poly (add-poly p1 p2))))
+                  #(tag-poly (add-poly %1 %2)))
   (put-operation! 'mul '(polynomial polynomial)
-                  (fn [p1 p2] (tag-poly (mul-poly p1 p2))))
+                  #(tag-poly (mul-poly %1 %2)))
   (put-operation! 'make 'polynomial
-                  (fn [var terms] (tag-poly (make-poly var terms))))
+                  #(tag-poly (make-poly %1 %2)))
   'done)
