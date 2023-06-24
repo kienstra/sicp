@@ -6,12 +6,12 @@
         amount-order-y (+ 1 (- y (Math/pow 10 order-y)))
         digits-order-y (+ 1 order-y)]
     (cond
-      (= x y)
-      accum
+      (>= x y)
+      (bigint accum)
       (= order-x order-y)
-      (int (+ accum (* digits-order-y (- y x))))
+      (bigint (+ accum (* digits-order-y (- y x))))
       (and (zero? order-y) (zero? x))
-      (int (+ accum (- y x)))
+      (bigint (+ accum y))
       :else (recur
              x
              (- y amount-order-y)

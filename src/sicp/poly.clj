@@ -10,8 +10,6 @@
   (cons variable term-list))
 (defn variable [p] (first p))
 (defn term-list [p] (rest p))
-(defn add-poly [p1 p2] (+ p1 p2)) ;; TODO
-(defn mul-poly [p1 p2] (* p1 p2)) ;; TODO
 
 (defn attach-tag [type-tag contents]
   (list type-tag contents))
@@ -22,16 +20,9 @@
     :else (first datum)))
 (defn tag-poly [p] (attach-tag 'polynomial p))
 
-(defn install-polynomial-package! []
-  (put-operation! 'add '(polynomial polynomial)
-                  (fn [p1 p2] (tag-poly (add-poly p1 p2))))
-  (put-operation! 'mul '(polynomial polynomial)
-                  (fn [p1 p2] (tag-poly (mul-poly p1 p2))))
-  (put-operation! 'make 'polynomial
-                  (fn [var terms] (tag-poly (make-poly var terms))))
-  'done)
-
 (defn add [& args] (apply-generic-coerce 'add args))
+(defn mul [& args] (apply-generic-coerce 'mul args))
+
 (defn =zero? [& args] (apply-generic-coerce '=zero? args))
 (defn make-polynomial [var terms]
   ((get-operation 'make 'polynomial) var terms))
@@ -75,6 +66,15 @@
     {:error (str "Polys not in same var -- ADD-POLY"
                  (list p1 p2))}))
 
+(defn mul-term-by-all-terms [t1 L]
+  (if (empty-termlist? L)
+    (the-empty-termlist)
+    (let [t2 (first-term L)]
+      (adjoin-term
+       (make-term (+ (order t1) (order t2))
+                  (mul (coeff t1) (coeff t2)))
+       (mul-term-by-all-terms t1 (rest-terms L))))))
+
 (defn mul-terms [L1 L2]
   (if (empty-termlist? L1)
     (the-empty-termlist)
@@ -87,3 +87,12 @@
                           (term-list p2)))
     {:error (str "Polys not in same var -- MUL-POLY"
                  (list p1 p2))}))
+
+(defn install-polynomial-package! []
+  (put-operation! 'add '(polynomial polynomial)
+                  (fn [p1 p2] (tag-poly (add-poly p1 p2))))
+  (put-operation! 'mul '(polynomial polynomial)
+                  (fn [p1 p2] (tag-poly (mul-poly p1 p2))))
+  (put-operation! 'make 'polynomial
+                  (fn [var terms] (tag-poly (make-poly var terms))))
+  'done)
