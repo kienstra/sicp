@@ -1,7 +1,10 @@
 (ns sicp.poly (:require [sicp.generic
-                         :refer [apply-generic-coerce
+                         :refer [add
+                                 contents
                                  get-operation
-                                 put-operation!]]))
+                                 mul
+                                 put-operation!
+                                 =zero?]]))
 
 (defn variable? [x] (symbol? x))
 (defn same-variable? [v1 v2]
@@ -20,10 +23,6 @@
     :else (first datum)))
 (defn tag-poly [p] (attach-tag 'polynomial p))
 
-(defn add [& args] (apply-generic-coerce 'add args))
-(defn mul [& args] (apply-generic-coerce 'mul args))
-
-(defn =zero? [& args] (apply-generic-coerce '=zero? args))
 (defn make-polynomial [var terms]
   ((get-operation 'make 'polynomial) var terms))
 (defn coeff [term] (second term))
@@ -66,6 +65,14 @@
     {:error (str "Polys not in same var -- ADD-POLY"
                  (list p1 p2))}))
 
+(defn sub-poly [p1 p2]
+  (if (same-variable? (variable p1) (variable p2))
+    (make-poly (variable p1)
+               (add-terms (term-list p1)
+                          (map #(list (order %) (mul -1 (coeff %))) (term-list p2))))
+    {:error (str "Polys not in same var -- ADD-POLY"
+                 (list p1 p2))}))
+
 (defn mul-term-by-all-terms [t1 L]
   (if (empty-termlist? L)
     (the-empty-termlist)
@@ -88,11 +95,18 @@
     {:error (str "Polys not in same var -- MUL-POLY"
                  (list p1 p2))}))
 
+(defn =zero-poly? [n]
+  (every? #(=zero? (coeff %)) (term-list n)))
+
 (defn install-polynomial-package! []
   (put-operation! 'add '(polynomial polynomial)
                   #(tag-poly (add-poly %1 %2)))
+  (put-operation! 'sub '(polynomial polynomial)
+                  #(tag-poly (sub-poly %1 %2)))
   (put-operation! 'mul '(polynomial polynomial)
                   #(tag-poly (mul-poly %1 %2)))
+  (put-operation! '=zero? '(polynomial)
+                  #(=zero-poly? %))
   (put-operation! 'make 'polynomial
                   #(tag-poly (make-poly %1 %2)))
   'done)

@@ -32,7 +32,7 @@
   (put-operation! 'mul '(integer integer) *)
   (put-operation! 'div '(integer integer) /)
   (put-operation! 'equ? '(integer integer) =)
-  (put-operation! '=zero? '(integer) zero?)
+  (put-operation! '=zero? '(integer) #(zero? %))
   (put-operation! 'make 'integer identity)
   'done)
 
@@ -83,7 +83,7 @@
                   #(tag-rat (div-rat %1 %2)))
   (put-operation! 'equ? '(rational rational)
                   #(equ-rat? %1 %2))
-  (put-operation! '=zero? '(rational) =zero-rat?)
+  (put-operation! '=zero? '(rational) #(=zero-rat? %))
   (put-operation! 'make 'rational
                   #(tag-rat (make-rat %1 %2)))
   'done)
@@ -97,7 +97,7 @@
   (put-operation! 'mul '(real real) *)
   (put-operation! 'div '(real real) /)
   (put-operation! 'equ? '(real real) =)
-  (put-operation! '=zero? '(real) #(= 0 %))
+  (put-operation! '=zero? '(real) #(zero? %))
   (put-operation! 'make 'real #(tag-real %))
   'done)
 (defn make-real [n]
@@ -130,7 +130,7 @@
   (and (= (real-part z1) (real-part z2))
        (= (imag-part z1) (imag-part z2))))
 (defn =zero-complex? [z]
-  (= 0 (real-part z)))
+  (zero? (real-part z)))
 (defn tag-complex [z] (attach-tag 'complex z))
 (defn make-from-real-imag-polar [x y]
   (list x y))
@@ -148,7 +148,7 @@
                   #(div-complex %1 %2))
   (put-operation! 'equ? '(complex complex)
                   #(equ-complex? %1 %2))
-  (put-operation! '=zero? '(complex) =zero-complex?)
+  (put-operation! '=zero? '(complex) #(=zero-complex? %))
   (put-operation! 'make-from-real-imag 'complex
                   #(tag-complex (make-from-real-imag-polar %1 %2)))
   (put-operation! 'make-from-mag-ang 'complex
