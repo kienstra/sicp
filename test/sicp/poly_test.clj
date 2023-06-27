@@ -2,6 +2,7 @@
   (:require [clojure.test :refer [deftest is testing]]
             [sicp.poly :refer [add-poly
                                add-terms
+                               div-poly
                                install-polynomial-package!
                                make-poly
                                make-polynomial
@@ -41,6 +42,12 @@
            (mul-poly (make-poly 'x '((1 2) (3 4))) (make-poly 'x '((5 6) (7 8)))))
         (= '(x (3 6) (4 6))
            (mul-poly (make-poly 'x '((3 4) (4 4))) (make-poly 'x '((3 2) (4 2)))))))
+  (testing "Divide poly"
+    (is (= '(x (3 1) (1 1) ((1 1) (0 -1)))
+           (div-poly (make-poly 'x '((5 1) (0 -1))) (make-poly 'x '((2 1) (0 -1))))))
+
+    (is (= '(x (0 1))
+           (div-poly (make-poly 'x '((1 1) (0 1))) (make-poly 'x '((1 1) (0 1)))))))
   (testing "Apply generic"
     (is (= '(polynomial (x (5 6) (7 8) (1 2) (3 4))) (apply-generic-coerce
                                                       'add
@@ -54,4 +61,5 @@
     (is (= true (=zero? (make-polynomial 'x '((2 0) (3 0)))))))
 
   (testing "Subtraction"
-    (is (= '(polynomial (x (2 4) (3 1))) (sub (make-polynomial 'x '((2 8) (3 4))) (make-polynomial 'x '((2 4) (3 3))))))))
+    (is (= '(polynomial (x (2 4) (3 1))) (sub (make-polynomial 'x '((2 8) (3 4))) (make-polynomial 'x '((2 4) (3 3))))))
+    (is (= '(polynomial (x)) (sub (make-polynomial 'x '((2 8) (3 8))) (make-polynomial 'x '((2 8) (3 8))))))))

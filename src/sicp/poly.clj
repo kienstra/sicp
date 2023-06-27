@@ -1,9 +1,10 @@
 (ns sicp.poly (:require [sicp.generic
                          :refer [add
-                                 contents
+                                 div
                                  get-operation
                                  mul
                                  put-operation!
+                                 sub
                                  =zero?]]))
 
 (defn variable? [x] (symbol? x))
@@ -65,11 +66,14 @@
     {:error (str "Polys not in same var -- ADD-POLY"
                  (list p1 p2))}))
 
+(defn sub-terms [p1 p2]
+  (add-terms p1
+             (map #(make-term (order %) (mul -1 (coeff %))) p2)))
+
 (defn sub-poly [p1 p2]
   (if (same-variable? (variable p1) (variable p2))
     (make-poly (variable p1)
-               (add-terms (term-list p1)
-                          (map #(list (order %) (mul -1 (coeff %))) (term-list p2))))
+               (sub-terms (term-list p1) (term-list p2)))
     {:error (str "Polys not in same var -- ADD-POLY"
                  (list p1 p2))}))
 
@@ -95,6 +99,30 @@
     {:error (str "Polys not in same var -- MUL-POLY"
                  (list p1 p2))}))
 
+(defn div-terms [L1 L2]
+  (if (empty-termlist? L1)
+    nil
+    (let [t1 (first-term L1)
+          t2 (first-term L2)]
+      (if (> (order t2) (order t1))
+        (list L1)
+        (let [new-c (div (coeff t1) (coeff t2))
+              new-o (- (order t1) (order t2))
+              rest-of-result (div-terms
+                              (sub-terms
+                               L1
+                               (mul-terms L2 (list (make-term new-o new-c))))
+                              L2)]
+          (cons (make-term new-o new-c) rest-of-result))))))
+
+(defn div-poly [p1 p2]
+  (if (same-variable? (variable p1) (variable p2))
+    (make-poly
+     (variable p1) (div-terms (term-list p1)
+                              (term-list p2)))
+    {:error (str "Polys not in same var -- MUL-POLY"
+                 (list p1 p2))}))
+
 (defn =zero-poly? [n]
   (every? #(=zero? (coeff %)) (term-list n)))
 
@@ -105,6 +133,8 @@
                   #(tag-poly (sub-poly %1 %2)))
   (put-operation! 'mul '(polynomial polynomial)
                   #(tag-poly (mul-poly %1 %2)))
+  (put-operation! 'div '(polynomial polynomial)
+                  #(tag-poly (div-poly %1 %2)))
   (put-operation! '=zero? '(polynomial)
                   #(=zero-poly? %))
   (put-operation! 'make 'polynomial
