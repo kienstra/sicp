@@ -3,18 +3,20 @@
             [sicp.poly :refer [add-poly
                                add-terms
                                div-poly
+                               install-make-rational-poly!
                                install-polynomial-package!
                                make-poly
                                make-polynomial
                                mul-poly
+                               remainder-poly
                                term-list
                                variable]]
             [sicp.generic :refer [apply-generic-coerce
-                                  make-rational
                                   install-complex-package!
                                   install-rational-package!
                                   install-real-package!
                                   install-integer-package!
+                                  make-rational
                                   sub
                                   =zero?]]))
 
@@ -43,16 +45,28 @@
         (= '(x (3 6) (4 6))
            (mul-poly (make-poly 'x '((3 4) (4 4))) (make-poly 'x '((3 2) (4 2)))))))
   (testing "Divide poly"
-    (is (= '(x (3 1) (1 1) ((1 1) (0 -1)))
+    (is (= '(x (3 1) (1 1) (1 1) (0 -1))
            (div-poly (make-poly 'x '((5 1) (0 -1))) (make-poly 'x '((2 1) (0 -1))))))
 
     (is (= '(x (0 1))
            (div-poly (make-poly 'x '((1 1) (0 1))) (make-poly 'x '((1 1) (0 1)))))))
+
+  (testing "Remainder poly"
+    (is (= '((1 1) (0 -1))
+           (remainder-poly '(x (3 1) (1 1) (1 1) (0 -1))))))
+
   (testing "Apply generic"
     (is (= '(polynomial (x (5 6) (7 8) (1 2) (3 4))) (apply-generic-coerce
                                                       'add
                                                       (list (make-polynomial 'x '((1 2) (3 4)))
                                                             (make-polynomial 'x '((5 6) (7 8))))))))
+  (testing "Make rational with polynomial"
+    (install-make-rational-poly!)
+    (is (= '(rational ((polynomial (x (2 1) (0 1))) (polynomial (x (3 1) (0 1)))))
+           (make-rational
+            (make-polynomial 'x '((2 1) (0 1)))
+            (make-polynomial 'x '((3 1) (0 1))))))
+    (install-rational-package!))
   (testing "Zero?"
     (is (= false (=zero? (make-polynomial 'x '((2 8) (3 4))))))
     (is (= false (=zero? (make-polynomial 'x '((2 0) (3 4))))))

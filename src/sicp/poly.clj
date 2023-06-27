@@ -3,8 +3,9 @@
                                  div
                                  get-operation
                                  mul
+                                 pair?
                                  put-operation!
-                                 sub
+                                 tag-rat
                                  =zero?]]))
 
 (defn variable? [x] (symbol? x))
@@ -14,7 +15,8 @@
   (cons variable term-list))
 (defn variable [p] (first p))
 (defn term-list [p] (rest p))
-
+(defn make-rational-poly [n d]
+  (list n d))
 (defn attach-tag [type-tag contents]
   (list type-tag contents))
 (defn type-tag [datum]
@@ -105,7 +107,7 @@
     (let [t1 (first-term L1)
           t2 (first-term L2)]
       (if (> (order t2) (order t1))
-        (list L1)
+        L1
         (let [new-c (div (coeff t1) (coeff t2))
               new-o (- (order t1) (order t2))
               rest-of-result (div-terms
@@ -113,7 +115,24 @@
                                L1
                                (mul-terms L2 (list (make-term new-o new-c))))
                               L2)]
-          (cons (make-term new-o new-c) rest-of-result))))))
+          (cons
+           (make-term new-o new-c)
+           rest-of-result))))))
+
+(defn descending-terms [n]
+  (reduce
+   (fn [acc term]
+     (if (and (last acc) (>= (coeff term) (coeff (last acc))))
+       (list term)
+       (into (list term) acc)))
+   '()
+   (term-list n)))
+
+(defn remainder-poly [n]
+  (let [descending (descending-terms n)]
+    (if (= descending (term-list n))
+      nil
+      descending)))
 
 (defn div-poly [p1 p2]
   (if (same-variable? (variable p1) (variable p2))
@@ -140,3 +159,7 @@
   (put-operation! 'make 'polynomial
                   #(tag-poly (make-poly %1 %2)))
   'done)
+
+(defn install-make-rational-poly! []
+  (put-operation! 'make 'rational
+                  #(tag-rat (make-rational-poly %1 %2))))

@@ -45,23 +45,25 @@
     (gcd b (mod a b))))
 (defn numer [x] (first x))
 (defn denom [x] (second x))
-(defn make-rat [n d]
+(defn make-rational [n d]
+  ((get-operation 'make 'rational) n d))
+(defn make-rat-gcd [n d]
   (let [g (gcd n d)]
     (list (/ n g) (/ d g))))
 (defn add-rat [x y]
-  (make-rat (+ (* (numer x) (denom y))
-               (* (numer y) (denom x)))
-            (* (denom x) (denom y))))
+  (make-rational (+ (* (numer x) (denom y))
+                    (* (numer y) (denom x)))
+                 (* (denom x) (denom y))))
 (defn sub-rat [x y]
-  (make-rat (- (* (numer x) (denom y))
-               (* (numer y) (denom x)))
-            (* (denom x) (denom y))))
+  (make-rational (- (* (numer x) (denom y))
+                    (* (numer y) (denom x)))
+                 (* (denom x) (denom y))))
 (defn mul-rat [x y]
-  (make-rat (* (numer x) (numer y))
-            (* (denom x) (denom y))))
+  (make-rational (* (numer x) (numer y))
+                 (* (denom x) (denom y))))
 (defn div-rat [x y]
-  (make-rat (* (numer x) (denom y))
-            (* (denom x) (numer y))))
+  (make-rational (* (numer x) (denom y))
+                 (* (denom x) (numer y))))
 
 (defn equ-rat? [x y]
   (and
@@ -74,21 +76,19 @@
 (defn tag-rat [x] (attach-tag 'rational x))
 (defn install-rational-package! []
   (put-operation! 'add '(rational rational)
-                  #(tag-rat (add-rat %1 %2)))
+                  #(add-rat %1 %2))
   (put-operation! 'sub '(rational rational)
-                  #(tag-rat (sub-rat %1 %2)))
+                  #(sub-rat %1 %2))
   (put-operation! 'mul '(rational rational)
-                  #(tag-rat (mul-rat %1 %2)))
+                  #(mul-rat %1 %2))
   (put-operation! 'div '(rational rational)
-                  #(tag-rat (div-rat %1 %2)))
+                  #(div-rat %1 %2))
   (put-operation! 'equ? '(rational rational)
                   #(equ-rat? %1 %2))
   (put-operation! '=zero? '(rational) #(=zero-rat? %))
   (put-operation! 'make 'rational
-                  #(tag-rat (make-rat %1 %2)))
+                  #(tag-rat (make-rat-gcd %1 %2)))
   'done)
-(defn make-rational [n d]
-  ((get-operation 'make 'rational) n d))
 
 (defn tag-real [x] (attach-tag 'real x))
 (defn install-real-package! []
