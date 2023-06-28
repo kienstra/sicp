@@ -2,6 +2,7 @@
   (:require [clojure.test :refer [deftest is testing]]
             [sicp.generic :refer [add
                                   div
+                                  gcd
                                   equ?
                                   install-complex-package!
                                   install-rational-package!
@@ -25,13 +26,14 @@
   (install-real-package!)
   (install-integer-package!)
 
-  (testing "Scheme numbers"
+  (testing "Integers"
     (is (= 11 (add 8 3)))
     (is (= 5 (sub 8 3)))
     (is (= 11 (add (make-integer 8) (make-integer 3))))
     (is (= 5 (sub (make-integer 8) (make-integer 3))))
     (is (= 24 (mul (make-integer 8) (make-integer 3))))
     (is (= 4 (div (make-integer 12) (make-integer 3))))
+    (is (= 2 (gcd 6 8)))
     (is (= false (equ? (make-integer 8) 9)))
     (is (= true (equ? (make-integer 0) 0)))
     (is (= false (=zero? (make-integer 8))))

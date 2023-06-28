@@ -25,12 +25,17 @@
     (number? datum)
     datum
     :else {:error (str "Bad datum -- TYPE-TAG" datum)}))
+(defn gcd-num [a b]
+  (if (= b 0)
+    a
+    (gcd-num b (mod a b))))
 
 (defn install-integer-package! []
   (put-operation! 'add '(integer integer) +)
   (put-operation! 'sub '(integer integer) -)
   (put-operation! 'mul '(integer integer) *)
   (put-operation! 'div '(integer integer) /)
+  (put-operation! 'greatest-common-divisor '(integer integer) gcd-num)
   (put-operation! 'equ? '(integer integer) =)
   (put-operation! '=zero? '(integer) #(zero? %))
   (put-operation! 'make 'integer identity)
@@ -38,17 +43,12 @@
 
 (defn make-integer [n]
   ((get-operation 'make 'integer) n))
-
-(defn gcd [a b]
-  (if (= b 0)
-    a
-    (gcd b (mod a b))))
 (defn numer [x] (first x))
 (defn denom [x] (second x))
 (defn make-rational [n d]
   ((get-operation 'make 'rational) n d))
 (defn make-rat-gcd [n d]
-  (let [g (gcd n d)]
+  (let [g (gcd-num n d)]
     (list (/ n g) (/ d g))))
 (defn add-rat [x y]
   (make-rational (+ (* (numer x) (denom y))
@@ -96,6 +96,7 @@
   (put-operation! 'sub '(real real) -)
   (put-operation! 'mul '(real real) *)
   (put-operation! 'div '(real real) /)
+  (put-operation! 'greatest-common-divisor '(real real) gcd-num)
   (put-operation! 'equ? '(real real) =)
   (put-operation! '=zero? '(real) #(zero? %))
   (put-operation! 'make 'real #(tag-real %))
@@ -240,5 +241,6 @@
 (def sub #(apply-generic-coerce 'sub %&))
 (def mul #(apply-generic-coerce 'mul %&))
 (def div #(apply-generic-coerce 'div %&))
+(def gcd #(apply-generic-coerce 'greatest-common-divisor %&))
 (def equ? #(apply-generic-coerce 'equ? %&))
 (def =zero? #(apply-generic-coerce '=zero? %&))

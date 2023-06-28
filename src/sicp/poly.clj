@@ -3,7 +3,6 @@
                                  div
                                  get-operation
                                  mul
-                                 pair?
                                  put-operation!
                                  tag-rat
                                  =zero?]]))
@@ -119,18 +118,18 @@
            (make-term new-o new-c)
            rest-of-result))))))
 
-(defn descending-terms [n]
+(defn last-descending-terms [n]
   (reduce
    (fn [acc term]
      (if (and (last acc) (>= (coeff term) (coeff (last acc))))
        (list term)
-       (into (list term) acc)))
+       (concat acc (list term))))
    '()
    (term-list n)))
 
-(defn remainder-poly [n]
-  (let [descending (descending-terms n)]
-    (if (= descending (term-list n))
+(defn remainder-terms [n]
+  (let [descending (last-descending-terms n)]
+    (if (= descending n)
       nil
       descending)))
 
@@ -138,6 +137,19 @@
   (if (same-variable? (variable p1) (variable p2))
     (make-poly
      (variable p1) (div-terms (term-list p1)
+                              (term-list p2)))
+    {:error (str "Polys not in same var -- MUL-POLY"
+                 (list p1 p2))}))
+
+(defn gcd-terms [a b]
+  (if (empty-termlist? b)
+    a
+    (gcd-terms b (remainder-terms (div-terms a b)))))
+
+(defn gcd-poly [p1 p2]
+  (if (same-variable? (variable p1) (variable p2))
+    (make-poly
+     (variable p1) (gcd-terms (term-list p1)
                               (term-list p2)))
     {:error (str "Polys not in same var -- MUL-POLY"
                  (list p1 p2))}))
@@ -154,6 +166,8 @@
                   #(tag-poly (mul-poly %1 %2)))
   (put-operation! 'div '(polynomial polynomial)
                   #(tag-poly (div-poly %1 %2)))
+  (put-operation! 'greatest-common-divisor '(polynomial polynomial)
+                  #(tag-poly (gcd-poly %1 %2)))
   (put-operation! '=zero? '(polynomial)
                   #(=zero-poly? %))
   (put-operation! 'make 'polynomial

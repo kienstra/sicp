@@ -8,10 +8,11 @@
                                make-poly
                                make-polynomial
                                mul-poly
-                               remainder-poly
+                               remainder-terms
                                term-list
                                variable]]
             [sicp.generic :refer [apply-generic-coerce
+                                  gcd
                                   install-complex-package!
                                   install-rational-package!
                                   install-real-package!
@@ -51,9 +52,15 @@
     (is (= '(x (0 1))
            (div-poly (make-poly 'x '((1 1) (0 1))) (make-poly 'x '((1 1) (0 1)))))))
 
-  (testing "Remainder poly"
+  (testing "Remainder terms"
     (is (= '((1 1) (0 -1))
-           (remainder-poly '(x (3 1) (1 1) (1 1) (0 -1))))))
+           (remainder-terms '(x (3 1) (1 1) (1 1) (0 -1))))))
+
+  (testing "GCD poly"
+    (is (= '(polynomial (x (0 -1)))
+           (gcd
+            (make-polynomial 'x '((4 1) (3 -1) (2 -2) (1 2)))
+            (make-polynomial 'x '((3 1) (1 -1)))))))
 
   (testing "Apply generic"
     (is (= '(polynomial (x (5 6) (7 8) (1 2) (3 4))) (apply-generic-coerce
