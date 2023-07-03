@@ -98,14 +98,10 @@
             '((2 11) (0 7))))))
 
   (testing "Reduce terms"
-    (is (= '()
+    (is (= '(((2 11) (0 7)) ((1 13) (0 5)))
            (reduce-terms
-            (mul
-             (make-polynomial 'x '((2 1) (1 -2) (0 1)))
-             (make-polynomial 'x '((2 11) (0 7))))
-            (mul
-             (make-polynomial 'x '((2 1) (1 -2) (0 1)))
-             (make-polynomial 'x '((1 13) (0 5))))))))
+            '((4 11) (3 -22) (2 18) (1 -14) (0 7))
+            '((3 13) (2 -21) (1 3) (0 5))))))
 
   (testing "Apply generic"
     (is (= '(polynomial (x (5 6) (7 8) (1 2) (3 4))) (apply-generic-coerce

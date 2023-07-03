@@ -1,7 +1,7 @@
 (ns sicp.poly (:require [sicp.generic
                          :refer [add
                                  div
-                                 equ?
+                                 gcd-num
                                  get-operation
                                  mul
                                  put-operation!
@@ -177,9 +177,9 @@
         reduced-n (div-terms n1 (list (make-term 0 greatest-common-divisor)))
         reduced-d (div-terms d1 (list (make-term  0 greatest-common-divisor)))
         gcd-reduced (reduce gcd-num (map coeff (concat reduced-n reduced-d)))]
-  (concat
+  (conj
    (div-terms reduced-n (make-term 0 gcd-reduced))
-   (div-terms reduced-d (make-term 0 gcd-reduced)))))
+   (list (div-terms reduced-d (make-term 0 gcd-reduced))))))
 
 (defn equ-poly? [p1 p2]
   (and
