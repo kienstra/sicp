@@ -15,8 +15,12 @@
   (list type-tag contents))
 (defn type-tag [datum]
   (cond
-    (int? datum)
+    (integer? datum)
     'integer
+    (ratio? datum)
+    'integer
+    (double? datum)
+    'double
     :else (first datum)))
 (defn contents [datum]
   (cond

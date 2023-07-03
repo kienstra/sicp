@@ -34,6 +34,8 @@
     (is (= 24 (mul (make-integer 8) (make-integer 3))))
     (is (= 4 (div (make-integer 12) (make-integer 3))))
     (is (= 2 (gcd 6 8)))
+    (is (= 1 (gcd 6 7 8)))
+    (is (= 3 (gcd 9 12 15)))
     (is (= false (equ? (make-integer 8) 9)))
     (is (= true (equ? (make-integer 0) 0)))
     (is (= false (=zero? (make-integer 8))))

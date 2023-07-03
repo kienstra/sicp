@@ -1,6 +1,7 @@
 (ns sicp.poly (:require [sicp.generic
                          :refer [add
                                  div
+                                 equ?
                                  get-operation
                                  mul
                                  put-operation!
@@ -100,6 +101,9 @@
     {:error (str "Polys not in same var -- MUL-POLY"
                  (list p1 p2))}))
 
+(defn integerizing-factor [p q]
+  (Math/pow (coeff (first-term q)) (- (+ 1 (order (first-term p))) (order (first q)))))
+
 (defn div-terms [L1 L2]
   (if (empty-termlist? L1)
     nil
@@ -144,16 +148,43 @@
 (defn gcd-terms [a b]
   (if (empty-termlist? b)
     a
-    (gcd-terms b (remainder-terms (div-terms a b)))))
+    (let [int-factor (integerizing-factor a b)
+          remainder (remainder-terms (div-terms (mul-term-by-all-terms
+                                                 (make-term 0 int-factor)
+                                                 a) b))]
+      (gcd-terms
+       b
+       remainder))))
 
 (defn gcd-poly [p1 p2]
   (if (same-variable? (variable p1) (variable p2))
     (make-poly
-     (variable p1) (gcd-terms (term-list p1)
-                              (term-list p2)))
+     (variable p1) (gcd-terms
+                    (term-list p1)
+                    (term-list p2)))
     {:error (str "Polys not in same var -- MUL-POLY"
                  (list p1 p2))}))
 
+(defn reduce-terms [n d]
+  (let [greatest-common-divisor (gcd-terms n d)
+        int-factor (Math/pow (coeff (first-term greatest-common-divisor)) (+ 1 (- (Math/max (order (first-term n)) (order (first-term d))) (order (first-term greatest-common-divisor)))))
+        n1 (mul-term-by-all-terms
+            (make-term 0 int-factor)
+            n)
+        d1 (mul-term-by-all-terms
+            (make-term 0 int-factor)
+            d)
+        reduced-n (div-terms n1 (list (make-term 0 greatest-common-divisor)))
+        reduced-d (div-terms d1 (list (make-term  0 greatest-common-divisor)))
+        gcd-reduced (reduce gcd-num (map coeff (concat reduced-n reduced-d)))]
+  (concat
+   (div-terms reduced-n (make-term 0 gcd-reduced))
+   (div-terms reduced-d (make-term 0 gcd-reduced)))))
+
+(defn equ-poly? [p1 p2]
+  (and
+   (same-variable? (variable p1) (variable p2))
+   (= (term-list p1) (term-list p2))))
 (defn =zero-poly? [n]
   (every? #(=zero? (coeff %)) (term-list n)))
 
@@ -168,6 +199,8 @@
                   #(tag-poly (div-poly %1 %2)))
   (put-operation! 'greatest-common-divisor '(polynomial polynomial)
                   #(tag-poly (gcd-poly %1 %2)))
+  (put-operation! 'equ? '(polynomial polynomial)
+                  #(equ-poly? %1 %2))
   (put-operation! '=zero? '(polynomial)
                   #(=zero-poly? %))
   (put-operation! 'make 'polynomial

@@ -5,19 +5,23 @@
                                div-poly
                                install-make-rational-poly!
                                install-polynomial-package!
+                               integerizing-factor
                                make-poly
                                make-polynomial
                                mul-poly
+                               reduce-terms
                                remainder-terms
                                term-list
                                variable]]
             [sicp.generic :refer [apply-generic-coerce
+                                  equ?
                                   gcd
                                   install-complex-package!
                                   install-rational-package!
                                   install-real-package!
                                   install-integer-package!
                                   make-rational
+                                  mul
                                   sub
                                   =zero?]]))
 
@@ -44,7 +48,16 @@
     (is (= '(x (8 24) (10 32) (6 12) (8 16))
            (mul-poly (make-poly 'x '((1 2) (3 4))) (make-poly 'x '((5 6) (7 8)))))
         (= '(x (3 6) (4 6))
-           (mul-poly (make-poly 'x '((3 4) (4 4))) (make-poly 'x '((3 2) (4 2)))))))
+           (mul-poly (make-poly 'x '((3 4) (4 4))) (make-poly 'x '((3 2) (4 2))))))
+    (is (= '(polynomial (x (4 11) (3 -22) (2 18) (1 -14) (0 7)))
+           (mul
+            (make-polynomial 'x '((2 1) (1 -2) (0 1)))
+            (make-polynomial 'x '((2 11) (0 7))))))
+    (is (= '(polynomial (x (3 13) (2 -21) (1 3) (0 5)))
+           (mul
+            (make-polynomial 'x '((2 1) (1 -2) (0 1)))
+            (make-polynomial 'x '((1 13) (0 5)))))))
+
   (testing "Divide poly"
     (is (= '(x (3 1) (1 1) (1 1) (0 -1))
            (div-poly (make-poly 'x '((5 1) (0 -1))) (make-poly 'x '((2 1) (0 -1))))))
@@ -52,15 +65,47 @@
     (is (= '(x (0 1))
            (div-poly (make-poly 'x '((1 1) (0 1))) (make-poly 'x '((1 1) (0 1)))))))
 
+  (testing "Equals poly"
+    (is (= false
+           (equ? (make-polynomial 'x '((5 9) (4 9))) (make-polynomial 'y '((5 9) (4 9))))))
+    (is (= false
+           (equ? (make-polynomial 'x '((5 9) (4 9))) (make-polynomial 'x '((5 9) (5 9))))))
+    (is (= true
+           (equ? (make-polynomial 'x '((5 9) (4 9))) (make-polynomial 'x '((5 9) (4 9)))))))
+
   (testing "Remainder terms"
     (is (= '((1 1) (0 -1))
            (remainder-terms '(x (3 1) (1 1) (1 1) (0 -1))))))
 
   (testing "GCD poly"
-    (is (= '(polynomial (x (0 -1)))
+    (is (= '(polynomial (x (3 1) (1 -1)))
            (gcd
             (make-polynomial 'x '((4 1) (3 -1) (2 -2) (1 2)))
-            (make-polynomial 'x '((3 1) (1 -1)))))))
+            (make-polynomial 'x '((3 1) (1 -1))))))
+    (is (= '(polynomial (x (3 13) (2 -21) (1 3) (0 5)))
+           (gcd
+            (mul
+             (make-polynomial 'x '((2 1) (1 -2) (0 1)))
+             (make-polynomial 'x '((2 11) (0 7))))
+            (mul
+             (make-polynomial 'x '((2 1) (1 -2) (0 1)))
+             (make-polynomial 'x '((1 13) (0 5))))))))
+
+  (testing "Integerizing factor"
+    (is (= 11.0
+           (integerizing-factor
+            '((2 1) (1 -2) (0 1))
+            '((2 11) (0 7))))))
+
+  (testing "Reduce terms"
+    (is (= '()
+           (reduce-terms
+            (mul
+             (make-polynomial 'x '((2 1) (1 -2) (0 1)))
+             (make-polynomial 'x '((2 11) (0 7))))
+            (mul
+             (make-polynomial 'x '((2 1) (1 -2) (0 1)))
+             (make-polynomial 'x '((1 13) (0 5))))))))
 
   (testing "Apply generic"
     (is (= '(polynomial (x (5 6) (7 8) (1 2) (3 4))) (apply-generic-coerce
