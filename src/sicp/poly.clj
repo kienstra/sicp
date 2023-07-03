@@ -1,6 +1,7 @@
 (ns sicp.poly (:require [sicp.generic
                          :refer [add
                                  div
+                                 gcd
                                  gcd-num
                                  get-operation
                                  mul
@@ -102,7 +103,7 @@
                  (list p1 p2))}))
 
 (defn integerizing-factor [p q]
-  (Math/pow (coeff (first-term q)) (- (+ 1 (order (first-term p))) (order (first q)))))
+  (int (Math/pow (coeff (first-term q)) (- (+ 1 (order (first-term p))) (order (first-term q))))))
 
 (defn div-terms [L1 L2]
   (if (empty-termlist? L1)
@@ -125,11 +126,11 @@
 (defn last-descending-terms [n]
   (reduce
    (fn [acc term]
-     (if (and (last acc) (>= (coeff term) (coeff (last acc))))
+     (if (and (last acc) (>= (order term) (order (last acc))))
        (list term)
        (concat acc (list term))))
    '()
-   (term-list n)))
+   n))
 
 (defn remainder-terms [n]
   (let [descending (last-descending-terms n)]
@@ -151,10 +152,11 @@
     (let [int-factor (integerizing-factor a b)
           remainder (remainder-terms (div-terms (mul-term-by-all-terms
                                                  (make-term 0 int-factor)
-                                                 a) b))]
+                                                 a) b))
+          gcd-coeff (reduce gcd (map coeff remainder))]
       (gcd-terms
        b
-       remainder))))
+       (map #(make-term (order %) (/ (coeff %) gcd-coeff)) remainder)))))
 
 (defn gcd-poly [p1 p2]
   (if (same-variable? (variable p1) (variable p2))
@@ -167,19 +169,19 @@
 
 (defn reduce-terms [n d]
   (let [greatest-common-divisor (gcd-terms n d)
-        int-factor (Math/pow (coeff (first-term greatest-common-divisor)) (+ 1 (- (Math/max (order (first-term n)) (order (first-term d))) (order (first-term greatest-common-divisor)))))
+        int-factor (int (Math/pow (coeff (first-term greatest-common-divisor)) (+ 1 (- (Math/max (order (first-term n)) (order (first-term d))) (order (first-term greatest-common-divisor))))))
         n1 (mul-term-by-all-terms
             (make-term 0 int-factor)
             n)
         d1 (mul-term-by-all-terms
             (make-term 0 int-factor)
             d)
-        reduced-n (div-terms n1 (list (make-term 0 greatest-common-divisor)))
-        reduced-d (div-terms d1 (list (make-term  0 greatest-common-divisor)))
+        reduced-n (div-terms n1 greatest-common-divisor)
+        reduced-d (div-terms d1 greatest-common-divisor)
         gcd-reduced (reduce gcd-num (map coeff (concat reduced-n reduced-d)))]
-  (conj
-   (div-terms reduced-n (make-term 0 gcd-reduced))
-   (list (div-terms reduced-d (make-term 0 gcd-reduced))))))
+    (cons
+     (div-terms reduced-n (list (make-term 0 gcd-reduced)))
+     (list (div-terms reduced-d (list (make-term 0 gcd-reduced)))))))
 
 (defn equ-poly? [p1 p2]
   (and

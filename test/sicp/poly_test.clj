@@ -2,13 +2,18 @@
   (:require [clojure.test :refer [deftest is testing]]
             [sicp.poly :refer [add-poly
                                add-terms
+                               coeff
                                div-poly
+                               div-terms
                                install-make-rational-poly!
                                install-polynomial-package!
                                integerizing-factor
                                make-poly
                                make-polynomial
+                               make-term
                                mul-poly
+                               mul-term-by-all-terms
+                               order
                                reduce-terms
                                remainder-terms
                                term-list
@@ -75,27 +80,36 @@
 
   (testing "Remainder terms"
     (is (= '((1 1) (0 -1))
-           (remainder-terms '(x (3 1) (1 1) (1 1) (0 -1))))))
+           (remainder-terms '((3 1) (1 1) (1 1) (0 -1)))))
+    (is (= '((2 1458) (1 -2916) (0 1458))
+           (remainder-terms '((1 143) (0 -55) (2 1458) (1 -2916) (0 1458))))))
 
   (testing "GCD poly"
-    (is (= '(polynomial (x (3 1) (1 -1)))
+    (is (= '(polynomial (x (2 -1) (1 1)))
            (gcd
             (make-polynomial 'x '((4 1) (3 -1) (2 -2) (1 2)))
             (make-polynomial 'x '((3 1) (1 -1))))))
-    (is (= '(polynomial (x (3 13) (2 -21) (1 3) (0 5)))
+    (is (= '(polynomial (x (2 1) (1 -2) (0 1)))
            (gcd
-            (mul
-             (make-polynomial 'x '((2 1) (1 -2) (0 1)))
-             (make-polynomial 'x '((2 11) (0 7))))
-            (mul
-             (make-polynomial 'x '((2 1) (1 -2) (0 1)))
-             (make-polynomial 'x '((1 13) (0 5))))))))
+            (make-polynomial 'x '((4 11) (3 -22) (2 18) (1 -14) (0 7)))
+            (make-polynomial 'x '((3 13) (2 -21) (1 3) (0 5)))))))
 
   (testing "Integerizing factor"
-    (is (= 11.0
+    (is (= 11
            (integerizing-factor
             '((2 1) (1 -2) (0 1))
-            '((2 11) (0 7))))))
+            '((2 11) (0 7)))))
+    (is (= '((2 1) (1 -2) (0 1))
+           (let [a '((4 11) (3 -22) (2 18) (1 -14) (0 7))
+                 b '((3 13) (2 -21) (1 3) (0 5))
+                 int-factor (integerizing-factor
+                             a
+                             b)
+                 remainder (remainder-terms (div-terms (mul-term-by-all-terms
+                                                        (make-term 0 (int int-factor))
+                                                        a) b))
+                 gcd-coeff (reduce gcd (map coeff remainder))]
+             (map #(make-term (order %) (/ (coeff %) gcd-coeff)) remainder)))))
 
   (testing "Reduce terms"
     (is (= '(((2 11) (0 7)) ((1 13) (0 5)))
