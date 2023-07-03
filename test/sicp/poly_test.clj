@@ -99,17 +99,9 @@
            (integerizing-factor
             '((2 1) (1 -2) (0 1))
             '((2 11) (0 7)))))
-    (is (= '((2 1) (1 -2) (0 1))
-           (let [a '((4 11) (3 -22) (2 18) (1 -14) (0 7))
-                 b '((3 13) (2 -21) (1 3) (0 5))
-                 int-factor (integerizing-factor
-                             a
-                             b)
-                 remainder (remainder-terms (div-terms (mul-term-by-all-terms
-                                                        (make-term 0 (int int-factor))
-                                                        a) b))
-                 gcd-coeff (reduce gcd (map coeff remainder))]
-             (map #(make-term (order %) (/ (coeff %) gcd-coeff)) remainder)))))
+    (is (= 169 (integerizing-factor
+                '((4 11) (3 -22) (2 18) (1 -14) (0 7))
+                '((3 13) (2 -21) (1 3) (0 5))))))
 
   (testing "Reduce terms"
     (is (= '(((2 11) (0 7)) ((1 13) (0 5)))

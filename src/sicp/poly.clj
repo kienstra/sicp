@@ -105,6 +105,11 @@
 (defn integerizing-factor [p q]
   (int (Math/pow (coeff (first-term q)) (- (+ 1 (order (first-term p))) (order (first-term q))))))
 
+(defn div-term-coeffs-by-num [L n]
+  (if (empty-termlist? L)
+    L
+    (map #(make-term (order %) (div (coeff %) n)) L)))
+
 (defn div-terms [L1 L2]
   (if (empty-termlist? L1)
     nil
@@ -156,7 +161,7 @@
           gcd-coeff (reduce gcd (map coeff remainder))]
       (gcd-terms
        b
-       (map #(make-term (order %) (/ (coeff %) gcd-coeff)) remainder)))))
+       (div-term-coeffs-by-num remainder gcd-coeff)))))
 
 (defn gcd-poly [p1 p2]
   (if (same-variable? (variable p1) (variable p2))
