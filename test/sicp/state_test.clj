@@ -1,6 +1,7 @@
 (ns sicp.state-test
   (:require [clojure.test :refer [deftest is testing]]
-            [sicp.state :refer [make-accumulator
+            [sicp.state :refer [make-account
+                                make-accumulator
                                 make-monitored]]
             [sicp.fixed-point :refer [sqrt]]))
 
@@ -23,4 +24,12 @@
     (is (= 2 (let [monitored (make-monitored sqrt)
                    _ (monitored 25)
                    _ (monitored 49)]
-               (monitored 'how-many-calls?))))))
+               (monitored 'how-many-calls?)))))
+  (testing "Account"
+    (is (= 100 (((make-account 10) 'deposit) 90)))
+    (is (= 0 (((make-account 10) 'withdraw) 10))))
+  (testing "Multiple accounts"
+    (let [W1 (make-account 100)
+          W2 (make-account 100)]
+      (is (= 0 ((W1 'withdraw) 100)))
+      (is (= 90 ((W2 'withdraw) 10))))))

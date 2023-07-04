@@ -17,3 +17,26 @@
       (do
         (swap! calls inc)
         (apply arg args)))))
+
+(def -balance (atom 0))
+(defn init-balance [amount]
+  (swap! -balance (fn [_] amount))
+  @-balance)
+(defn withdraw [amount]
+  (if (>= @-balance amount)
+    (do (swap! -balance #(- % amount))
+        @-balance)
+    "Insufficient funds"))
+(defn deposit [amount]
+  (swap! -balance #(+ % amount))
+  @-balance)
+
+(defn dispatch [m]
+  (cond (= m 'withdraw) withdraw
+        (= m 'deposit) deposit
+        :else {:error (str "Unknown request -- MAKE-ACCOUNT"
+                           m)}))
+
+(defn make-account [balance]
+  (init-balance balance)
+  dispatch)
