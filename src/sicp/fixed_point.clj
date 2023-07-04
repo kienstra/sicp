@@ -4,7 +4,6 @@
 (defn close-enough? [a b]
   (< (abs (- a b)) tolerance))
 (defn try-guess [f guess]
-  (println "The guess is" guess)
   (let [next (f guess)]
     (if (close-enough? guess next)
       next
