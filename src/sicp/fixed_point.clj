@@ -46,9 +46,6 @@
 (defn sqrt-transform [x]
   (fixed-point-of-transform #(/ x %) average-damp 1.0))
 
-(defn double [term x]
-  (term (term x)))
-
 (defn compose [& args]
   (fn [x] (reduce #(%2 %1) x (reverse args))))
 

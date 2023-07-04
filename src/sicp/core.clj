@@ -1,5 +1,7 @@
 (ns sicp.core
-  (:require [sicp.digits :refer [digits]]))
+  (:require [sicp.three-fn :refer [three-fn]]
+            [sicp.fixed-point :refer [x-pow-x]]))
 
 (defn -main []
-  (println "Running"))
+  (println (three-fn 11))
+  (println (x-pow-x 1000)))
