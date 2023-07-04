@@ -4,7 +4,6 @@
 (defn close-enough? [a b]
   (< (abs (- a b)) tolerance))
 (defn try-guess [f guess]
-  (println "The guess is" guess)
   (let [next (f guess)]
     (if (close-enough? guess next)
       next
@@ -46,9 +45,6 @@
 
 (defn sqrt-transform [x]
   (fixed-point-of-transform #(/ x %) average-damp 1.0))
-
-(defn double [term x]
-  (term (term x)))
 
 (defn compose [& args]
   (fn [x] (reduce #(%2 %1) x (reverse args))))
