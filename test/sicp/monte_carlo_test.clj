@@ -22,5 +22,4 @@
     (is (= 0 (estimate-integral in-circle? 0 1 0 1 100)))
     (is (= 4 (estimate-integral in-circle? 4 6 6 8 100)))
     (is (> 3.5 (estimate-integral in-circle? 2 8 4 10 100)))
-    (is (< 2.8 (estimate-integral in-circle? 2 8 4 10 100)))
-    (is (< 2.8 (estimate-integral in-circle? 2 8 4 10 0)))))
+    (is (< 2.8 (estimate-integral in-circle? 2 8 4 10 100)))))

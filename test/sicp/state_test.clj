@@ -3,6 +3,7 @@
             [sicp.state :refer [->account
                                 balance
                                 deposit
+                                make-account
                                 make-accumulator
                                 make-monitored
                                 withdraw]]
@@ -29,7 +30,7 @@
                    _ (monitored 49)]
                (monitored 'how-many-calls?)))))
   (testing "Account deposit"
-    (is (= 100 (balance (deposit (->account 10) 90))))
+    (is (= 100 (balance (deposit (make-account 10) 90))))
     (is (= 190 (balance (deposit (->account 100) 90)))))
   (testing "Account withdrawal"
     (is (= 0 (balance (withdraw (->account 100) 100))))

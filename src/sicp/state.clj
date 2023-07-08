@@ -31,3 +31,6 @@
                         (> amount bal)
                          {:error (str "Insufficient funds")}
                          (account. (- bal amount)))))
+
+(defn make-account [bal]
+  (->account bal))

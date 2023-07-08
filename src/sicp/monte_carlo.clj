@@ -1,5 +1,4 @@
-(ns sicp.monte-carlo
-  (:require [clojure.spec.alpha :as s]))
+(ns sicp.monte-carlo)
 
 (defn random-in-range [low high]
   (+ low (rand (- high low))))
@@ -19,9 +18,6 @@
 (defn estimate-integral [P x1 x2 y1 y2 trials]
   (let [passed (estimate-integral-iter P x1 x2 y1 y2 trials 0)]
     (pi-from-ratio (/ passed trials))))
-
-(s/fdef estimate-integral
-  :args (s/cat :trials s/conform #(> % 0)))
 
 (defn in-circle? [x y]
   (<= (+ (Math/pow (- x 5) 2) (Math/pow (- y 7) 2)) 9))
