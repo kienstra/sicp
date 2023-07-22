@@ -7,13 +7,14 @@
   (and (number? exp) (= exp num)))
 (defn make-sum [a1 a2]
   (cond (=number? a1 0) a2
-        (or (=number? a2 0) (= '() a2)) a1
-        (and (number? a1) (number? a2)) (+ a1 a2)
+        (or (=number? a2 0) (= '() a2) (every? nil? a2)) a1
+        (and (number? a1) (number? a2)) (list '+ a1 a2)
         (and (seq? a2) (rest a2)) (list '+ a1 (make-sum (first a2) (rest a2)))
         :else (list '+ a1 a2)))
 (defn make-subtraction [a1 a2]
   (cond (or (=number? a1 0) (nil? a1)) (- a2)
         (or (=number? a2 0) (nil? a2)) a1
+        (and (seq? a2) (every? nil? a2)) a1
         (and (number? a1) (number? a2)) (- a1 a2)
         :else (list '- a1 a2)))
 (defn make-product [m1 m2]
@@ -23,6 +24,7 @@
         (= '() m2) m1
         (=number? m1 1) m2
         (=number? m2 1) m1
+        (and (seq? m2) (every? nil? m2)) m1
         (and (number? m1) (number? m2)) (* m1 m2)
         (and (seq? m2) (rest m2)) (list '* m1 (make-product (first m2) (rest m2)))
         :else (list '* m1 m2)))
@@ -66,8 +68,6 @@
          (make-product (deriv (multiplier exp) var)
                        (multiplicand exp)))
         (exponentiation? exp)
-        (make-exponentiation
-         (make-product (base exp) (exponent exp))
-         (make-subtraction (base exp) 1))
+        (make-product (base exp) (exponent exp))
         :else
-        {:error (str "unknown expression type -- DERIV" exp)}))
+        {:error "unknown expression type -- DERIV"}))

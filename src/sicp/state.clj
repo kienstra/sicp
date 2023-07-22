@@ -34,3 +34,42 @@
 
 (defn make-account [bal]
   (->account bal))
+
+(defprotocol Queueable
+  (insert-queue [this n])
+  (delete-queue [this])
+  (front-queue [this])
+  (empty-queue? [this]))
+
+(deftype queue [q]
+  Queueable
+  (insert-queue [_ n]
+    (queue. (cons n q)))
+  (delete-queue [_]
+    (queue. (drop-last q)))
+  (front-queue [_] (last q))
+  (empty-queue? [_] (empty? q)))
+
+(defprotocol Dequeable
+  (front-insert-deque [this n])
+  (rear-insert-deque [this n])
+  (front-delete-deque [this])
+  (rear-delete-deque [this])
+  (front-deque [this])
+  (rear-deque [this])
+
+  (empty-deque? [this]))
+
+(deftype deque [q]
+  Dequeable
+  (front-insert-deque [_ n]
+    (deque. (cons n q)))
+  (rear-insert-deque [_ n]
+    (deque. (conj q n)))
+  (front-delete-deque [_]
+    (deque. (drop-last q)))
+  (rear-delete-deque [_]
+    (deque. (rest q)))
+  (front-deque [_] (last q))
+  (rear-deque [_] (first q))
+  (empty-deque? [_] (empty? q)))
