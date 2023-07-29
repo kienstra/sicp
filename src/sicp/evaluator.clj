@@ -1,7 +1,11 @@
 (ns sicp.evaluator)
 
 (declare apply-metacircular)
+(declare eval-if)
 (declare eval-metacircular)
+(declare expand-clauses)
+(declare set-variable-value)
+
 (defn pair? [s]
   (and (list? s) (= 2 (count s))))
 (defn tagged-list? [exp tag]
@@ -9,9 +13,9 @@
        (= (first exp) tag)))
 (defn begin? [exp] (tagged-list? exp 'begin))
 (defn begin-actions [exp] (rest exp))
-(defn last-exp? [seq] (nil? (rest seq)))
-(defn first-exp [seq] (first seq))
-(defn rest-exps [seq] (rest seq))
+(defn last-exp? [s] (nil? (rest s)))
+(defn first-exp [s] (first s))
+(defn rest-exps [s] (rest s))
 (defn application? [exp] (pair? exp))
 (defn operator [exp] (first exp))
 (defn operands [exp] (rest exp))
@@ -61,40 +65,23 @@
 (defn set-rest [a b]
   (cons (first a) b))
 
-(declare set-var-env-loop)
-(defn scan-set-var [vars vals env]
-  (cond (nil? vars)
-        (set-var-env-loop (enclosing-environment env) vals env)
-        (= var (first vars))
-        (set-first vals val)
-        :else (scan-set-var (rest vars) (rest vals) env)))
-
 (defn make-frame [variables values]
   (cons variables values))
 (defn frame-variables [frame] (first frame))
-(defn frame-values [frame] (rest frame))
+(defn frame-values [frame] (second frame))
 (defn add-binding-to-frame [var val frame]
-  (set-first frame (cons var (first frame)))
-  (set-rest frame (cons val (rest frame))))
-
-(defn set-var-env-loop [var val env]
-  (if (= env the-empty-environment)
-    {:error (str "Unbound variable -- SET!" var)}
-    (let [frame (first-frame env)]
-      (scan-set-var (frame-variables frame)
-                    (frame-values frame)
-                    env))))
-
-(declare env-loop)
+  (cons
+   (set-first frame (cons var (first frame)))
+   (set-rest frame (cons val (rest frame)))))
 
 (defn scan-env-loop [env vars vals var val]
   (cond (nil? vars)
-        (env-loop (enclosing-environment env) var val)
+        (set-variable-value (enclosing-environment env) var val)
         (= var (first vars))
         (set-first vals val)
         :else (recur env (rest vars) (rest vals) var val)))
 
-(defn env-loop [env var val]
+(defn set-variable-value [env var val]
   (if (= env the-empty-environment)
     {:error (str "Unbound variable -- SET!" var)}
     (let [frame (first-frame env)]
@@ -104,28 +91,26 @@
                      var
                      val))))
 
-(defn set-variable-value [var val env]
-  (env-loop env var val))
-
 (defn eval-assignment [exp env]
-  (set-variable-value (assignment-variable exp)
-                      (eval-metacircular (assignment-value exp) env)
-                      env)
-  'ok)
+  (set-variable-value env
+                      (assignment-variable exp)
+                      (eval-metacircular (assignment-value exp) env)))
 
-(defn scan-define-variable [vars vals var frame]
+(defn scan-define-variable [frame vars vals var val]
   (cond (nil? vars)
         (add-binding-to-frame var val frame)
         (= var (first vars))
         (set-first vals val)
-        :else (scan-define-variable (rest vars) (rest vals) var frame)))
+        :else (scan-define-variable frame (rest vars) (rest vals) var val)))
 
-(defn define-variable [var val env]
+(defn define-variable [env var val]
   (let [frame (first-frame env)]
-    (scan-define-variable (frame-variables frame)
-                          (frame-values frame)
-                          var
-                          frame)))
+    (scan-define-variable
+     frame
+     (frame-variables frame)
+     (frame-values frame)
+     var
+     val)))
 
 (defn eval-definition [exp env]
   (define-variable (definition-variable exp)
@@ -140,7 +125,7 @@
 (defn quoted? [exp]
   (tagged-list? exp 'quote))
 
-(defn text-of-quotation [exp] (nth exp 3))
+(defn text-of-quotation [exp] (second exp))
 (defn if? [exp] (tagged-list? exp 'if))
 (defn if-predicate [exp] (nth exp 1))
 (defn if-consequent [exp] (nth exp 2))
@@ -158,7 +143,6 @@
         (last-exp? seq) (first-exp seq)
         :else (make-begin seq)))
 
-(declare expand-clauses)
 (defn cond? [exp] (tagged-list? exp 'cond))
 (defn cond-clauses [exp] (rest exp))
 (defn cond-predicate [clause] (first clause))
@@ -190,7 +174,12 @@
 (defn procedure-body [p] (nth p 2))
 (defn procedure-environment [p] (nth p 3))
 
-(declare eval-if)
+(defn lookup-variable-value [exp env]
+  (nth
+   (frame-values env)
+   (.indexOf (frame-variables env) exp)
+   {:error (str "Could not find variable" exp)}))
+
 (defn eval-metacircular [exp env]
   (cond
     (self-evaluating? exp) exp
@@ -210,7 +199,7 @@
     (apply-metacircular (eval-metacircular (operator exp) env)
                         (list-of-values (operands exp) env))
     :else
-    {:error (str "Unknown expression type -- EVAL" exp)}))
+    {:error (str "Unknown expression type -- EVAL METACIRCULAR" exp)}))
 
 (defn extend-environment [vars vals base-env]
   (if (= (count vars) (count vals))
