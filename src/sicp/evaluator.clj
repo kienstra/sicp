@@ -23,7 +23,7 @@
 (defn first-operand [ops] (first ops))
 (defn rest-operands [ops] (rest ops))
 (defn assignment? [exp]
-  (tagged-list? exp 'set!))
+  (tagged-list? exp 'set))
 (defn assignment-variable [exp] (nth exp 1))
 (defn assignment-value [exp] (nth exp 2))
 (defn lambda? [exp] (tagged-list? exp 'lambda))
@@ -55,9 +55,9 @@
 (defn eval-sequence [exps env]
   (if (last-exp? exps)
     (eval-metacircular (first-exp exps) env)
-    (do
-      (eval-metacircular (first-exp exps) env)
-      (eval-sequence (rest-exps exps) env))))
+    (recur
+     (rest-exps exps)
+     (eval-metacircular (first-exp exps) env))))
 
 (defn set-first [a b]
   (cons b (rest a)))
@@ -185,8 +185,8 @@
     (self-evaluating? exp) exp
     (variable? exp) (lookup-variable-value exp env)
     (quoted? exp) (text-of-quotation exp)
-    (assignment? exp) (eval-assignment exp env)
-    (definition? exp) (eval-definition exp env)
+    (assignment? exp) (eval-assignment exp env) ; return env
+    (definition? exp) (eval-definition exp env) ; return env
     (if? exp) (eval-if exp env)
     (lambda? exp)
     (make-procedure (lambda-parameters exp)
