@@ -1,10 +1,9 @@
 (ns sicp.evaluator)
 
-(declare apply-metacircular)
 (declare eval-if)
 (declare eval-metacircular)
-(declare ->evaluator)
 (declare expand-clauses)
+(declare scan-env-loop-lookup)
 (declare set-variable-value)
 
 (defn pair? [s]
@@ -13,7 +12,7 @@
   (= (first exp) tag))
 (defn begin? [exp] (tagged-list? exp 'begin))
 (defn begin-actions [exp] (rest exp))
-(defn last-exp? [s] (nil? (rest s)))
+(defn last-exp? [s] (= '() (rest s)))
 (defn first-exp [s] (first s))
 (defn rest-exps [s] (rest s))
 (defn application? [exp] (pair? exp))
@@ -24,8 +23,8 @@
 (defn rest-operands [ops] (rest ops))
 (defn assignment? [exp]
   (tagged-list? exp 'set))
-(defn assignment-variable [exp] (first (second exp)))
-(defn assignment-value [exp] (second (second exp)))
+(defn assignment-variable [exp] (nth exp 1))
+(defn assignment-value [exp] (nth exp 2))
 (defn lambda? [exp] (tagged-list? exp 'lambda))
 (defn lambda-parameters [exp] (nth exp 1))
 (defn lambda-body [exp] (nth exp 2))
@@ -49,7 +48,7 @@
 (defn list-of-values [exps env]
   (if (no-operands? exps)
     '()
-    (cons (eval-metacircular (->evaluator env) (first-operand exps))
+    (cons (eval-metacircular env (first-operand exps))
           (list-of-values (rest-operands exps) env))))
 
 (defn set-first [a b]
@@ -67,7 +66,7 @@
    (set-first frame (cons var (first frame)))
    (set-rest frame (cons val (rest frame)))))
 
-(defn scan-env-loop [env vars vals var val]
+(defn scan-env-loop-set [env vars vals var val]
   (cond (nil? vars)
         (set-variable-value (enclosing-environment env) var val)
         (= var (first vars))
@@ -76,18 +75,18 @@
 
 (defn set-variable-value [env var val]
   (if (= env the-empty-environment)
-    {:error (str "Unbound variable -- SET!" var)}
+    {:error (str "Unbound variable -- SET!" var env)}
     (let [frame (first-frame env)]
-      (scan-env-loop env
-                     (frame-variables frame)
-                     (frame-values frame)
-                     var
-                     val))))
+      (scan-env-loop-set env
+                         (frame-variables frame)
+                         (frame-values frame)
+                         var
+                         val))))
 
 (defn eval-assignment [exp env]
   (set-variable-value env
                       (assignment-variable exp)
-                      (eval-metacircular (->evaluator env) (assignment-value exp))))
+                      (eval-metacircular env (assignment-value exp))))
 
 (defn scan-define-variable [frame vars vals var val]
   (cond (nil? vars)
@@ -107,7 +106,7 @@
 
 (defn eval-definition [exp env]
   (define-variable (definition-variable exp)
-    (eval-metacircular (->evaluator env) (definition-value exp))
+    (eval-metacircular env (definition-value exp))
     env))
 
 (defn self-evaluating? [exp]
@@ -167,10 +166,26 @@
 (defn procedure-body [p] (nth p 2))
 (defn procedure-environment [p] (nth p 3))
 
-(defn lookup-variable-value [exp env]
-  (nth
-   (frame-values env)
-   (.indexOf (frame-variables env) exp)))
+(defn env-loop-lookup [env var]
+  (if (= env the-empty-environment)
+    {:error (str "Unbound variable" var)}
+    (let [frame (first-frame env)]
+      (scan-env-loop-lookup
+       env
+       (frame-variables frame)
+       (frame-values frame)
+       var))))
+
+(defn scan-env-loop-lookup [env vars vals var]
+  (cond
+    (nil? vars)
+    (env-loop-lookup (enclosing-environment env) var)
+    (= var (first vars))
+    (first vals)
+    :else (scan-env-loop-lookup env (rest vars) (rest vals) var)))
+
+(defn lookup-variable-value [var env]
+  (env-loop-lookup env var))
 
 (defn extend-environment [vars vals base-env]
   (if (= (count vars) (count vals))
@@ -202,58 +217,48 @@
    args))
 
 (defn eval-if [exp env]
-  (if (eval-metacircular (->evaluator env) (if-predicate exp))
-    (eval-metacircular (->evaluator env) (if-consequent exp))
-    (eval-metacircular (->evaluator env) (if-alternative exp))))
+  (if (eval-metacircular env (if-predicate exp))
+    (eval-metacircular env (if-consequent exp))
+    (eval-metacircular env (if-alternative exp))))
 
-(defprotocol Evaluable
-  (eval-metacircular [this exp])
-  (eval-sequence [this exp])
-  (apply-metacircular [this procedure arguments]))
+(defn eval-sequence [env exps]
+  (if (last-exp? exps)
+    (eval-metacircular env (first-exp exps))
+    (eval-sequence
+     (eval-metacircular env (first-exp exps))
+     (rest-exps exps))))
 
-(deftype evaluator [env]
-  Evaluable
-  (eval-metacircular [this exp]
-    (cond
-      (self-evaluating? exp) exp
-      (variable? exp) (lookup-variable-value exp env)
-      (quoted? exp) (text-of-quotation exp)
-      (assignment? exp) (evaluator. (eval-assignment exp env))
-      (definition? exp) (evaluator. (eval-definition exp env))
-      (if? exp) (eval-if exp env)
-      (lambda? exp)
-      (make-procedure (lambda-parameters exp)
-                      (lambda-body exp)
-                      env)
-      (begin? exp)
-      (eval-sequence this (begin-actions exp))
-      (cond? exp) (eval-metacircular this (cond->if exp))
-      (application? exp)
-      (apply-metacircular
-       this
-       (eval-metacircular this (operator exp))
-       (list-of-values env (operands exp)))
-      :else
-      {:error (str "Unknown expression type -- EVAL METACIRCULAR" exp)}))
-
-  (eval-sequence [this exps]
-    (if (last-exp? exps)
-      (eval-metacircular this (first-exp exps))
-      (eval-sequence
-       (evaluator. (eval-metacircular this (first-exp exps)))
-       (rest-exps exps))))
-
-  (apply-metacircular [_ procedure arguments]
-    (cond (primitive-procedure? procedure)
-          (apply-primitive-procedure procedure arguments)
-          (compound-procedure? procedure)
-          (eval-sequence
-           (.evaluator
-            (extend-environment
-             (procedure-parameters procedure)
-             arguments
-             (procedure-environment procedure)))
-           (procedure-body procedure))
-          :else
-          {:error
-           (str "Unknown procedure type -- APPLY" procedure)})))
+;; Like the eval function in SICP
+(defn eval-metacircular [env exp]
+  (cond
+    (self-evaluating? exp) exp
+    (variable? exp) (lookup-variable-value exp env)
+    (quoted? exp) (text-of-quotation exp)
+    (assignment? exp) (eval-assignment exp env)
+    (definition? exp) (eval-definition exp env)
+    (if? exp) (eval-if exp env)
+    (lambda? exp)
+    (make-procedure (lambda-parameters exp)
+                    (lambda-body exp)
+                    env)
+    (begin? exp)
+    (eval-sequence env (begin-actions exp))
+    (cond? exp) (eval-metacircular env (cond->if exp))
+    (application? exp)
+    ;; Like the apply function in SICP
+    (let [procedure (eval-metacircular env (operator exp))
+          arguments (list-of-values env (operands exp))]
+      (cond (primitive-procedure? procedure)
+            (apply-primitive-procedure procedure arguments)
+            (compound-procedure? procedure)
+            (eval-sequence
+             (extend-environment
+              (procedure-parameters procedure)
+              arguments
+              (procedure-environment procedure))
+             (procedure-body procedure))
+            :else
+            {:error
+             (str "Unknown procedure type -- APPLY" procedure)}))
+    :else
+    {:error (str "Unknown expression type -- EVAL METACIRCULAR" exp)}))
