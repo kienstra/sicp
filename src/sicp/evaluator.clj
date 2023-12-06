@@ -230,35 +230,43 @@
 
 ;; Like the apply function in SICP
 (defn apply-metacircular [procedure arguments]
-  (cond (primitive-procedure? procedure)
-        (apply-primitive-procedure procedure arguments)
-        (compound-procedure? procedure)
-        (eval-sequence
-         (extend-environment
-          (procedure-parameters procedure)
-          arguments
-          (procedure-environment procedure))
-         (procedure-body procedure))
-        :else
-        {:error
-         (str "Unknown procedure type -- APPLY" procedure)}))
+  (cond
+    (primitive-procedure? procedure)
+    (apply-primitive-procedure procedure arguments)
+    (compound-procedure? procedure)
+    (eval-sequence
+     (extend-environment
+      (procedure-parameters procedure)
+      arguments
+      (procedure-environment procedure))
+     (procedure-body procedure))
+    :else
+    {:error
+     (str "Unknown procedure type -- APPLY" procedure)}))
 
 ;; Like the eval function in SICP
 (defn eval-metacircular [env exp]
   (cond
-    (self-evaluating? exp) exp
-    (variable? exp) (lookup-variable-value exp env)
-    (quoted? exp) (text-of-quotation exp)
-    (assignment? exp) (eval-assignment exp env)
-    (definition? exp) (eval-definition exp env)
-    (if? exp) (eval-if exp env)
+    (self-evaluating? exp)
+    exp
+    (variable? exp)
+    (lookup-variable-value exp env)
+    (quoted? exp)
+    (text-of-quotation exp)
+    (assignment? exp)
+    (eval-assignment exp env)
+    (definition? exp)
+    (eval-definition exp env)
+    (if? exp)
+    (eval-if exp env)
     (lambda? exp)
     (make-procedure (lambda-parameters exp)
                     (lambda-body exp)
                     env)
     (begin? exp)
     (eval-sequence env (begin-actions exp))
-    (cond? exp) (eval-metacircular env (cond->if exp))
+    (cond? exp)
+    (eval-metacircular env (cond->if exp))
     (application? exp)
     (apply-metacircular
       (eval-metacircular env (operator exp))
