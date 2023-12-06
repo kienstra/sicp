@@ -228,6 +228,21 @@
      (eval-metacircular env (first-exp exps))
      (rest-exps exps))))
 
+;; Like the apply function in SICP
+(defn apply-metacircular [procedure arguments]
+  (cond (primitive-procedure? procedure)
+        (apply-primitive-procedure procedure arguments)
+        (compound-procedure? procedure)
+        (eval-sequence
+         (extend-environment
+          (procedure-parameters procedure)
+          arguments
+          (procedure-environment procedure))
+         (procedure-body procedure))
+        :else
+        {:error
+         (str "Unknown procedure type -- APPLY" procedure)}))
+
 ;; Like the eval function in SICP
 (defn eval-metacircular [env exp]
   (cond
@@ -245,20 +260,8 @@
     (eval-sequence env (begin-actions exp))
     (cond? exp) (eval-metacircular env (cond->if exp))
     (application? exp)
-    ;; Like the apply function in SICP
-    (let [procedure (eval-metacircular env (operator exp))
-          arguments (list-of-values env (operands exp))]
-      (cond (primitive-procedure? procedure)
-            (apply-primitive-procedure procedure arguments)
-            (compound-procedure? procedure)
-            (eval-sequence
-             (extend-environment
-              (procedure-parameters procedure)
-              arguments
-              (procedure-environment procedure))
-             (procedure-body procedure))
-            :else
-            {:error
-             (str "Unknown procedure type -- APPLY" procedure)}))
+    (apply-metacircular
+      (eval-metacircular env (operator exp))
+      (list-of-values env (operands exp)))
     :else
     {:error (str "Unknown expression type -- EVAL METACIRCULAR" exp)}))
